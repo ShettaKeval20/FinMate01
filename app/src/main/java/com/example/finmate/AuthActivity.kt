@@ -15,8 +15,8 @@ class AuthActivity : ComponentActivity() {
             FinMateTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
 //                    LoginScreen()
-//                    AuthScreen()
-                    AuthPage()
+                    AuthScreen()
+//                    AuthPage()
                 }
             }
         }

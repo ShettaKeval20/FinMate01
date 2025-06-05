@@ -5,3 +5,6 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.google.gms.google.services) apply false
 }
+
+// Google Services Plugin for Firebase
+apply(plugin = "com.google.gms.google-services")
