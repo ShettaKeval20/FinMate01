@@ -16,7 +16,7 @@ class AuthActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize()) {
 //                    LoginScreen()
 //                    AuthScreen()
-                    AuthPage()
+                    ModernAuthPage()
                 }
             }
         }

@@ -49,18 +49,229 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 
-@Preview(showBackground = true, showSystemUi = true)
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun AuthPage(
+//    onlogin: () -> Unit = {},
+//    onGoogleLoginClick: () -> Unit = {},
+//    onSignupClick: () -> Unit = {},
+//    onForgotPasswordClick: () -> Unit = {},
+//    onBackClick: () -> Unit = {},
+//    onTermsClick: () -> Unit = {},
+//    onPrivacyClick: () -> Unit = {},
+//    pwdVisiblity: MutableState<Boolean> = remember { mutableStateOf(false) },
+//) {
+//    var email by remember { mutableStateOf("") }
+//    var password by remember { mutableStateOf("") }
+//    var confirmPassword by remember { mutableStateOf("") }
+//    var isLogin by remember { mutableStateOf(true) }
+//    var passwordVisible by remember { mutableStateOf(false) }
+//    var confirmPasswordVisible by remember { mutableStateOf(false) }
+//
+//    val context = LocalContext.current
+//    val auth = FirebaseAuth.getInstance()
+//
+//    Surface(
+//        modifier = Modifier.fillMaxSize()
+//    ) {
+//        Column (modifier = Modifier.fillMaxSize()
+//            .padding(horizontal = 24.dp),
+//            horizontalAlignment  = Alignment.CenterHorizontally,
+//            verticalArrangement = Arrangement.Top
+//        ){
+////            Header Section
+//            Spacer(modifier = Modifier.height(48.dp))
+//            Text(text = stringResource(R.string.login),
+//                style = MaterialTheme.typography.headlineLarge,
+//                fontWeight = FontWeight.Bold,
+//            )
+//
+//            Spacer(modifier = Modifier.height(10.dp))
+//
+//            Text(text = stringResource(R.string.text),
+//                style = MaterialTheme.typography.titleSmall,
+//            )
+//
+//            Spacer(modifier = Modifier.height(60.dp))
+//
+//            OutlinedTextField(
+//                value = email,
+//                onValueChange = { email = it },
+//                label = { Text("Email") },
+//                placeholder = { Text("Please enter your email") },
+//                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+//                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+//                singleLine = true,
+//                modifier = Modifier.fillMaxWidth()
+//            )
+//
+//            OutlinedTextField(
+//                value = password,
+//                onValueChange = { password = it },
+//                label = { Text("Password") },
+//                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+//                placeholder = { Text("Please enter your password") },
+//                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+//                singleLine = true,
+//                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+//                trailingIcon = {
+//                    val image = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility
+//                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+//                        Icon(imageVector = image, contentDescription = if (passwordVisible) "Hide password" else "Show password")
+//                    }
+//                },
+//                modifier = Modifier.fillMaxWidth()
+//            )
+//
+//
+//            if (!isLogin) {
+//                OutlinedTextField(
+//                    value = confirmPassword,
+//                    onValueChange = { confirmPassword = it },
+//                    label = { Text("Confirm Password") },
+//                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+//                    placeholder = { Text("Please confirm your password") },
+//                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+//                    singleLine = true,
+//                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+//                    trailingIcon = {
+//                        val image = if (confirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility
+//                        IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+//                            Icon(imageVector = image, contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password")
+//                        }
+//                    },
+//                    modifier = Modifier.fillMaxWidth()
+//                )
+//            }
+//
+//            Spacer(modifier = Modifier.height(24.dp))
+//
+//            Button(
+//                onClick = {
+//                    if (isLogin) {
+//                        auth.signInWithEmailAndPassword(email, password)
+//                            .addOnCompleteListener { task ->
+//                                if (task.isSuccessful) {
+//                                    val user = auth.currentUser
+//                                    if (user != null && user.isEmailVerified) {
+//                                        Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show()
+//                                        Log.d("Auth", "Login success")
+//                                        email = ""
+//                                        password = ""
+//                                        confirmPassword = ""
+//                                        context.startActivity(Intent(context, MainActivity::class.java))
+//                                    } else {
+//                                        auth.signOut()
+//                                        Toast.makeText(context, "Please verify your email before logging in", Toast.LENGTH_LONG).show()
+//                                    }
+//                                } else {
+//                                    Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+//                                    Log.e("Auth", "Login error: ${task.exception?.message}")
+//                                }
+//                            }
+//                    } else {
+//                        if (password == confirmPassword) {
+//                            auth.createUserWithEmailAndPassword(email, password)
+//                                .addOnCompleteListener { task ->
+//                                    if (task.isSuccessful) {
+//                                        val user = auth.currentUser
+//                                        user?.sendEmailVerification()
+//                                            ?.addOnCompleteListener { emailTask ->
+//                                                if (emailTask.isSuccessful) {
+//                                                    Toast.makeText(context, "Verification email sent. Please verify before login.", Toast.LENGTH_LONG).show()
+//                                                    Log.d("Auth", "Verification email sent")
+//                                                    isLogin = true
+//                                                    email = ""
+//                                                    password = ""
+//                                                    confirmPassword = ""
+//                                                } else {
+//                                                    Toast.makeText(context, "Failed to send verification email", Toast.LENGTH_SHORT).show()
+//                                                    Log.e("Auth", "Verification email error: ${emailTask.exception?.message}")
+//                                                }
+//                                            }
+//                                    } else {
+//                                        Toast.makeText(context, "Registration failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+//                                        Log.e("Auth", "Registration error: ${task.exception?.message}")
+//                                    }
+//                                }
+//                        } else {
+//                            Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+//                        }
+//                    }
+//                },
+//                        modifier = Modifier.fillMaxWidth()
+//            )
+//
+//            {
+//                Text(text = if (isLogin) "Login" else "Register")
+//            }
+//
+//            Spacer(modifier = Modifier.height(16.dp))
+//
+//            Text(
+//                text = if (isLogin) "Don't have an account? Register" else "Already have an account? Login",
+//                color = MaterialTheme.colorScheme.primary,
+//                fontSize = 14.sp,
+//                modifier = Modifier.clickable { isLogin = !isLogin }
+//            )
+//
+//            Spacer(modifier = Modifier.height(16.dp))
+//
+////          Divider with text
+//            Row(
+//                verticalAlignment = Alignment.CenterVertically,
+//                modifier = Modifier.fillMaxWidth()
+//            ) {
+//                Divider(modifier = Modifier.weight(1f))
+//                Text(
+//                    text = "  or continue with  ",
+//                    style = MaterialTheme.typography.bodySmall,
+//                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+//                )
+//                Divider(modifier = Modifier.weight(1f))
+//            }
+//
+//            Spacer(modifier = Modifier.height(16.dp))
+//
+//// Social login icons row
+//            Row(
+//                horizontalArrangement = Arrangement.spacedBy(24.dp),
+//                verticalAlignment = Alignment.CenterVertically,
+//                modifier = Modifier.align(Alignment.CenterHorizontally)
+//            ) {
+//                IconButton(onClick = onGoogleLoginClick) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.google),
+//                        contentDescription = "Google Sign-In",
+//                        modifier = Modifier.size(32.dp),
+//                        tint = Color.Unspecified // Keep original logo colors
+//                    )
+//                }
+//                IconButton(onClick = {
+//                    Toast.makeText(context, "Facebook login not implemented", Toast.LENGTH_SHORT).show()
+//                }) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.facebook),
+//                        contentDescription = "Facebook Sign-In",
+//                        modifier = Modifier.size(32.dp),
+//                        tint = Color.Unspecified
+//                    )
+//                }
+//            }
+//
+//        }
+//    }
+//}
+
+// This is my new Design
+
 @Composable
-fun AuthPage(
-    onlogin: () -> Unit = {},
-    onGoogleLoginClick: () -> Unit = {},
-    onSignupClick: () -> Unit = {},
-    onForgotPasswordClick: () -> Unit = {},
-    onBackClick: () -> Unit = {},
-    onTermsClick: () -> Unit = {},
-    onPrivacyClick: () -> Unit = {},
-    pwdVisiblity: MutableState<Boolean> = remember { mutableStateOf(false) },
+fun ModernAuthPage(
+    onGoogleLoginClick: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val auth = FirebaseAuth.getInstance()
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -68,172 +279,168 @@ fun AuthPage(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
-    val auth = FirebaseAuth.getInstance()
-
     Surface(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        color = MaterialTheme.colorScheme.background
     ) {
-        Column (modifier = Modifier.fillMaxSize()
-            .padding(horizontal = 24.dp),
-            horizontalAlignment  = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
-        ){
-//            Header Section
-            Spacer(modifier = Modifier.height(48.dp))
-            Text(text = stringResource(R.string.login),
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 48.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Header
+            Text(
+                text = if (isLogin) "Welcome Back 👋" else "Create Account",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+            Text(
+                text = if (isLogin) "Login to FinMate to continue" else "Register to get started",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            Text(text = stringResource(R.string.text),
-                style = MaterialTheme.typography.titleSmall,
-            )
-
-            Spacer(modifier = Modifier.height(60.dp))
-
+            // Email
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") },
-                placeholder = { Text("Please enter your email") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                placeholder = { Text("example@mail.com") },
+                leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp)
             )
 
+            // Password
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Password") },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                placeholder = { Text("Please enter your password") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true,
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                placeholder = { Text("Enter password") },
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Password") },
                 trailingIcon = {
-                    val image = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = if (passwordVisible) "Hide password" else "Show password")
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = "Toggle password visibility"
+                        )
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp)
             )
 
-
+            // Confirm Password for Register
             if (!isLogin) {
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
                     label = { Text("Confirm Password") },
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                    placeholder = { Text("Please confirm your password") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    singleLine = true,
-                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    placeholder = { Text("Re-enter password") },
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Confirm Password") },
                     trailingIcon = {
-                        val image = if (confirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility
                         IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                            Icon(imageVector = image, contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password")
+                            Icon(
+                                imageVector = if (confirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = "Toggle confirm password visibility"
+                            )
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp)
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Submit Button
             Button(
                 onClick = {
                     if (isLogin) {
-                        auth.signInWithEmailAndPassword(email, password)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    val user = auth.currentUser
-                                    if (user != null && user.isEmailVerified) {
-                                        Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show()
-                                        Log.d("Auth", "Login success")
-                                        email = ""
-                                        password = ""
-                                        confirmPassword = ""
-                                        context.startActivity(Intent(context, MainActivity::class.java))
-                                    } else {
-                                        auth.signOut()
-                                        Toast.makeText(context, "Please verify your email before logging in", Toast.LENGTH_LONG).show()
-                                    }
+                        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {
+                            if (it.isSuccessful) {
+                                val user = auth.currentUser
+                                if (user?.isEmailVerified == true) {
+                                    Toast.makeText(context, "Login Success", Toast.LENGTH_SHORT).show()
+                                    context.startActivity(Intent(context, MainActivity::class.java))
                                 } else {
-                                    Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
-                                    Log.e("Auth", "Login error: ${task.exception?.message}")
+                                    auth.signOut()
+                                    Toast.makeText(context, "Please verify your email", Toast.LENGTH_SHORT).show()
                                 }
+                            } else {
+                                Toast.makeText(context, "Login failed: ${it.exception?.message}", Toast.LENGTH_SHORT).show()
                             }
+                        }
                     } else {
                         if (password == confirmPassword) {
-                            auth.createUserWithEmailAndPassword(email, password)
-                                .addOnCompleteListener { task ->
-                                    if (task.isSuccessful) {
-                                        val user = auth.currentUser
-                                        user?.sendEmailVerification()
-                                            ?.addOnCompleteListener { emailTask ->
-                                                if (emailTask.isSuccessful) {
-                                                    Toast.makeText(context, "Verification email sent. Please verify before login.", Toast.LENGTH_LONG).show()
-                                                    Log.d("Auth", "Verification email sent")
-                                                    isLogin = true
-                                                    email = ""
-                                                    password = ""
-                                                    confirmPassword = ""
-                                                } else {
-                                                    Toast.makeText(context, "Failed to send verification email", Toast.LENGTH_SHORT).show()
-                                                    Log.e("Auth", "Verification email error: ${emailTask.exception?.message}")
-                                                }
-                                            }
-                                    } else {
-                                        Toast.makeText(context, "Registration failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
-                                        Log.e("Auth", "Registration error: ${task.exception?.message}")
-                                    }
+                            auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener {
+                                if (it.isSuccessful) {
+                                    auth.currentUser?.sendEmailVerification()
+                                    Toast.makeText(context, "Check your email for verification", Toast.LENGTH_LONG).show()
+                                    isLogin = true
+                                } else {
+                                    Toast.makeText(context, "Registration failed: ${it.exception?.message}", Toast.LENGTH_SHORT).show()
                                 }
+                            }
                         } else {
                             Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
                         }
                     }
                 },
-                        modifier = Modifier.fillMaxWidth()
-            )
-
-            {
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                shape = MaterialTheme.shapes.large
+            ) {
                 Text(text = if (isLogin) "Login" else "Register")
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
+            // Toggle Login/Register
             Text(
                 text = if (isLogin) "Don't have an account? Register" else "Already have an account? Login",
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 14.sp,
-                modifier = Modifier.clickable { isLogin = !isLogin }
+                modifier = Modifier
+                    .clickable { isLogin = !isLogin }
+                    .padding(top = 16.dp)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-//          Divider with text
+            // Divider with text
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Divider(modifier = Modifier.weight(1f))
                 Text(
-                    text = "  or continue with  ",
+                    text = "  OR  ",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = Color.Gray
                 )
                 Divider(modifier = Modifier.weight(1f))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-// Social login icons row
+            // Social login icons
             Row(
                 horizontalArrangement = Arrangement.spacedBy(24.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -243,24 +450,21 @@ fun AuthPage(
                     Icon(
                         painter = painterResource(id = R.drawable.google),
                         contentDescription = "Google Sign-In",
-                        modifier = Modifier.size(32.dp),
-                        tint = Color.Unspecified // Keep original logo colors
+                        modifier = Modifier.size(36.dp),
+                        tint = Color.Unspecified
                     )
                 }
                 IconButton(onClick = {
                     Toast.makeText(context, "Facebook login not implemented", Toast.LENGTH_SHORT).show()
                 }) {
                     Icon(
-                        painter = painterResource(id = R.drawable.google),
+                        painter = painterResource(id = R.drawable.facebook),
                         contentDescription = "Facebook Sign-In",
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(36.dp),
                         tint = Color.Unspecified
                     )
                 }
             }
-
         }
     }
 }
-
-// This is my new Design
