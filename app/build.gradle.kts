@@ -66,8 +66,18 @@ dependencies {
 //    Material Icons
     implementation ("androidx.compose.material:material-icons-extended")
 
+//    Navigation Graph
+    implementation ("androidx.navigation:navigation-compose:2.7.7")
 
+    // Lottie for animations
+    implementation("com.airbnb.android:lottie-compose:6.1.0")
 
+// Jetpack Navigation Compose
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+
+//    Pager
+    implementation("com.google.accompanist:accompanist-pager:0.34.0") // latest version as of now
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.34.0")
 
 
 
