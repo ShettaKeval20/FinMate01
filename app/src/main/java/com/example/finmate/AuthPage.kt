@@ -279,190 +279,258 @@ fun ModernAuthPage(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
+    var showForgotPassword by remember { mutableStateOf(false) }
+
+
     Surface(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         color = MaterialTheme.colorScheme.background
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 48.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Header
-            Text(
-                text = if (isLogin) "Welcome Back 👋" else "Create Account",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold
+        if (showForgotPassword) {
+            ForgotPasswordScreen(onBackClick = { showForgotPassword = false })
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 48.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Header
+                Text(
+                    text = if (isLogin) "Welcome Back 👋" else "Create Account",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
                 )
-            )
-            Text(
-                text = if (isLogin) "Login to FinMate to continue" else "Register to get started",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
-            )
+                Text(
+                    text = if (isLogin) "Login to FinMate to continue" else "Register to get started",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
 
-            Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-            // Email
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
-                placeholder = { Text("example@mail.com") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp)
-            )
-
-            // Password
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                placeholder = { Text("Enter password") },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Password") },
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = "Toggle password visibility"
-                        )
-                    }
-                },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp)
-            )
-
-            // Confirm Password for Register
-            if (!isLogin) {
+                // Email
                 OutlinedTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    label = { Text("Confirm Password") },
-                    placeholder = { Text("Re-enter password") },
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Confirm Password") },
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email") },
+                    placeholder = { Text("example@mail.com") },
+                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp)
+                )
+
+                // Password
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") },
+                    placeholder = { Text("Enter password") },
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Password") },
                     trailingIcon = {
-                        IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
-                                imageVector = if (confirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = "Toggle confirm password visibility"
+                                imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = "Toggle password visibility"
                             )
                         }
                     },
-                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 6.dp)
                 )
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                // Forgot Password
+                if (isLogin) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Forgot Password?",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 14.sp,
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .clickable { showForgotPassword = true }
+                    )
+                }
 
-            // Submit Button
-            Button(
-                onClick = {
-                    if (isLogin) {
-                        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {
-                            if (it.isSuccessful) {
-                                val user = auth.currentUser
-                                if (user?.isEmailVerified == true) {
-                                    Toast.makeText(context, "Login Success", Toast.LENGTH_SHORT).show()
-                                    context.startActivity(Intent(context, MainActivity::class.java))
-                                } else {
-                                    auth.signOut()
-                                    Toast.makeText(context, "Please verify your email", Toast.LENGTH_SHORT).show()
-                                }
-                            } else {
-                                Toast.makeText(context, "Login failed: ${it.exception?.message}", Toast.LENGTH_SHORT).show()
+                // Confirm Password for Register
+                if (!isLogin) {
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        label = { Text("Confirm Password") },
+                        placeholder = { Text("Re-enter password") },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Lock,
+                                contentDescription = "Confirm Password"
+                            )
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                confirmPasswordVisible = !confirmPasswordVisible
+                            }) {
+                                Icon(
+                                    imageVector = if (confirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                    contentDescription = "Toggle confirm password visibility"
+                                )
                             }
-                        }
-                    } else {
-                        if (password == confirmPassword) {
-                            auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener {
+                        },
+                        visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Submit Button
+
+                Button(
+                    onClick = {
+                        if (isLogin) {
+                            auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {
                                 if (it.isSuccessful) {
-                                    auth.currentUser?.sendEmailVerification()
-                                    Toast.makeText(context, "Check your email for verification", Toast.LENGTH_LONG).show()
-                                    isLogin = true
+                                    val user = auth.currentUser
+                                    if (user?.isEmailVerified == true) {
+                                        Toast.makeText(context, "Login Success", Toast.LENGTH_SHORT)
+                                            .show()
+
+                                        email = ""
+                                        password = ""
+                                        confirmPassword = ""
+                                        context.startActivity(
+                                            Intent(
+                                                context,
+                                                MainActivity::class.java
+                                            )
+                                        )
+                                    } else {
+                                        auth.signOut()
+                                        Toast.makeText(
+                                            context,
+                                            "Please verify your email",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 } else {
-                                    Toast.makeText(context, "Registration failed: ${it.exception?.message}", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Login failed: ${it.exception?.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                         } else {
-                            Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                            if (password == confirmPassword) {
+                                auth.createUserWithEmailAndPassword(email, password)
+                                    .addOnCompleteListener {
+                                        if (it.isSuccessful) {
+                                            auth.currentUser?.sendEmailVerification()
+                                            Toast.makeText(
+                                                context,
+                                                "Check your email for verification",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                            isLogin = true
+                                                    email = ""
+                                                    password = ""
+                                                    confirmPassword = ""
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Registration failed: ${it.exception?.message}",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Passwords do not match",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                shape = MaterialTheme.shapes.large
-            ) {
-                Text(text = if (isLogin) "Login" else "Register")
-            }
-
-            // Toggle Login/Register
-            Text(
-                text = if (isLogin) "Don't have an account? Register" else "Already have an account? Login",
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 14.sp,
-                modifier = Modifier
-                    .clickable { isLogin = !isLogin }
-                    .padding(top = 16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Divider with text
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Divider(modifier = Modifier.weight(1f))
-                Text(
-                    text = "  OR  ",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
-                Divider(modifier = Modifier.weight(1f))
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Social login icons
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(24.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
-                IconButton(onClick = onGoogleLoginClick) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.google),
-                        contentDescription = "Google Sign-In",
-                        modifier = Modifier.size(36.dp),
-                        tint = Color.Unspecified
-                    )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    shape = MaterialTheme.shapes.large
+                ) {
+                    Text(text = if (isLogin) "Login" else "Register")
                 }
-                IconButton(onClick = {
-                    Toast.makeText(context, "Facebook login not implemented", Toast.LENGTH_SHORT).show()
-                }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.facebook),
-                        contentDescription = "Facebook Sign-In",
-                        modifier = Modifier.size(36.dp),
-                        tint = Color.Unspecified
+
+                // Toggle Login/Register
+                Text(
+                    text = if (isLogin) "Don't have an account? Register" else "Already have an account? Login",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .clickable { isLogin = !isLogin }
+                        .padding(top = 16.dp)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Divider with text
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Divider(modifier = Modifier.weight(1f))
+                    Text(
+                        text = "  OR  ",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
                     )
+                    Divider(modifier = Modifier.weight(1f))
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Social login icons
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    IconButton(onClick = onGoogleLoginClick) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.google),
+                            contentDescription = "Google Sign-In",
+                            modifier = Modifier.size(36.dp),
+                            tint = Color.Unspecified
+                        )
+                    }
+                    IconButton(onClick = {
+                        Toast.makeText(
+                            context,
+                            "Facebook login not implemented",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.facebook),
+                            contentDescription = "Facebook Sign-In",
+                            modifier = Modifier.size(36.dp),
+                            tint = Color.Unspecified
+                        )
+                    }
                 }
             }
         }
