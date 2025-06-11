@@ -2,5 +2,7 @@
     <string name="app_name">FinMate</string>
     <string name="login">FinMate</string>
     <string name="text">Start managing your finance faster and better</string>
+    <string name="facebook_app_id">1233808238234582</string>
+    <string name="facebook_client_token">361a0befe16782746d84d9109e97021b</string>
     <string name="default_web_client_id">638983805691-t0lfbf5k57netsd61s0apu0c29fjt1kf.apps.googleusercontent.com</string>
 </resources>

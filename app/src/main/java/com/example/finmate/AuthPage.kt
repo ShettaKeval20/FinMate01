@@ -1,5 +1,6 @@
 package com.example.finmate
 
+import android.app.Activity
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
@@ -47,6 +48,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.facebook.login.LoginManager
 import com.google.firebase.auth.FirebaseAuth
 
 //@Preview(showBackground = true, showSystemUi = true)
@@ -518,11 +520,7 @@ fun ModernAuthPage(
                         )
                     }
                     IconButton(onClick = {
-                        Toast.makeText(
-                            context,
-                            "Facebook login not implemented",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        LoginManager.getInstance().logInWithReadPermissions(context as Activity, listOf("email", "public_profile"))
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.facebook),
