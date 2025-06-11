@@ -63,14 +63,15 @@ fun ForgotPasswordScreen(
                 painter = painterResource(id = R.drawable.forgot), // 🎨 Use a Lottie or static reset image
                 contentDescription = null,
                 modifier = Modifier
-                    .size(160.dp)
+                    .size(240.dp)
                     .padding(bottom = 16.dp)
             )
 
             Text(
                 text = "Enter your email and we'll send you a reset link.",
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(bottom = 24.dp)
+                modifier = Modifier.padding(bottom = 24.dp),
+                fontSize = 14.sp,
             )
 
             OutlinedTextField(
@@ -103,8 +104,6 @@ fun ForgotPasswordScreen(
                             if (task.isSuccessful) {
                                 success = true
                                 errorMessage = null
-                                // Optional haptic feedback:
-                                // HapticFeedbackType.TextHandleMove
                                 Toast.makeText(context, "Reset link sent!", Toast.LENGTH_SHORT).show()
                             } else {
                                 success = false

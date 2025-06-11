@@ -37,7 +37,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
         OnboardingPage(
             title = "Welcome to FinMate",
             description = "Your smart financial companion to help you take control of your money.",
-            animationRes = R.raw.board1,
+            animationRes = R.raw.board2,
 
 
         ),
@@ -50,7 +50,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
             title = "Secure & Effortless Access",
             description = "Your data is encrypted. Logging in is fast and safe. Get started in just a few taps." +
                     "\n",
-            animationRes = R.raw.board1
+            animationRes = R.raw.board2
         )
     )
 

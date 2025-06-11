@@ -79,6 +79,8 @@ dependencies {
     implementation("com.google.accompanist:accompanist-pager:0.34.0") // latest version as of now
     implementation("com.google.accompanist:accompanist-pager-indicators:0.34.0")
 
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+
 
 
 
