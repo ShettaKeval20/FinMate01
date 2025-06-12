@@ -84,6 +84,10 @@ dependencies {
 ////    Firebase Analytics
 //    implementation ("com.google.firebase:firebase-analytics-ktx")
 
+//    Country Picker
+    implementation("io.github.joelkanyi:komposecountrycodepicker:1.4.0")
+
+
 
 
     // Facebook Login
