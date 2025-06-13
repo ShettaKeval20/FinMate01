@@ -14,9 +14,16 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.window.PopupProperties
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import java.util.*
@@ -37,10 +44,10 @@ fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
     var incomeExpanded by remember { mutableStateOf(false) }
     val incomeOptions = listOf("Salaried", "Business", "Freelance", "Student", "Passive Income", "Investment Income", "Pension", "Other")
 
-    var country by remember { mutableStateOf(Locale.getDefault().displayCountry) }
-    var currency by remember { mutableStateOf(Currency.getInstance(Locale.getDefault()).currencyCode) }
+    var country by remember { mutableStateOf("") }
+    var currency by remember { mutableStateOf("") }
+    var countryExpanded by remember { mutableStateOf(false) }
     var currencyExpanded by remember { mutableStateOf(false) }
-    val currencyOptions = listOf("INR", "USD", "EUR", "CAD", "GBP", "JPY")
 
     val countryCurrencyList = remember {
         Locale.getISOCountries().mapNotNull { code ->
@@ -49,11 +56,11 @@ fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
                 val countryName = locale.displayCountry
                 val currencyCode = Currency.getInstance(locale).currencyCode
                 val flag = getFlagEmoji(code)
-                Triple(code, "$flag $countryName", "$flag $currencyCode")
+                CountryInfo(countryName, currencyCode, flag)
             } catch (e: Exception) {
                 null
             }
-        }.sortedBy { it.second }
+        }.sortedBy { it.name }
     }
 
     Column(
@@ -88,27 +95,33 @@ fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
                         )
                     }
                 }
+
                 2 -> {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text("What's your income type?", style = MaterialTheme.typography.subtitle1)
                         Spacer(modifier = Modifier.height(12.dp))
+
+                        var incomeTextFieldSize by remember { mutableStateOf(androidx.compose.ui.geometry.Size.Zero) }
+
                         Box(modifier = Modifier.fillMaxWidth()) {
                             OutlinedTextField(
                                 value = incomeType,
                                 onValueChange = {},
-                                label = { Text("Income Type") },
                                 readOnly = true,
+                                label = { Text("Income Type") },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                            )
-                            Spacer( // invisible clickable overlay
-                                modifier = Modifier
-                                    .matchParentSize()
+                                    .onGloballyPositioned { coordinates ->
+                                        incomeTextFieldSize = coordinates.size.toSize()
+                                    }
                                     .clickable { incomeExpanded = true }
                             )
+
                             DropdownMenu(
                                 expanded = incomeExpanded,
-                                onDismissRequest = { incomeExpanded = false }
+                                onDismissRequest = { incomeExpanded = false },
+                                modifier = Modifier
+                                    .width(with(LocalDensity.current) { incomeTextFieldSize.width.toDp() })
                             ) {
                                 incomeOptions.forEach {
                                     DropdownMenuItem(onClick = {
@@ -123,28 +136,23 @@ fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
 
                     }
                 }
+
                 3 -> {
-                    var countryExpanded by remember { mutableStateOf(false) }
-                    val countryList = remember {
-                        Locale.getAvailableLocales()
-                            .mapNotNull { it.displayCountry }
-                            .filter { it.isNotBlank() }
-                            .distinct()
-                            .sorted()
-                    }
-
                     Column(modifier = Modifier.fillMaxWidth()) {
-
-                        // Country Dropdown
                         Text("Where do you live?", style = MaterialTheme.typography.subtitle1)
                         Spacer(modifier = Modifier.height(12.dp))
+                        var countryFieldSize by remember { mutableStateOf(IntSize.Zero) }
                         Box(modifier = Modifier.fillMaxWidth()) {
                             OutlinedTextField(
                                 value = country,
                                 onValueChange = {},
                                 label = { Text("Country") },
                                 readOnly = true,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onGloballyPositioned { coordinates ->
+                                        countryFieldSize = coordinates.size
+                                    }
                             )
                             Spacer(
                                 modifier = Modifier
@@ -153,22 +161,18 @@ fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
                             )
                             DropdownMenu(
                                 expanded = countryExpanded,
-                                onDismissRequest = { countryExpanded = false }
+                                onDismissRequest = { countryExpanded = false },
+                                modifier = Modifier
+                                    .width(with(LocalDensity.current) { countryFieldSize.width.toDp() }),
+                                properties = PopupProperties(focusable = false)
                             ) {
-                                countryList.forEach {
+                                countryCurrencyList.forEach {
                                     DropdownMenuItem(onClick = {
-                                        country = it
+                                        country = "${it.flag} ${it.name}"
+                                        currency = it.currency
                                         countryExpanded = false
-
-                                        // Try to fetch currency
-                                        try {
-                                            val locale = Locale("", Locale.getISOCountries().find { code ->
-                                                Locale("", code).displayCountry == it
-                                            } ?: "")
-                                            currency = Currency.getInstance(locale).currencyCode
-                                        } catch (_: Exception) {}
                                     }) {
-                                        Text(it)
+                                        Text("${it.flag} ${it.name}")
                                     }
                                 }
                             }
@@ -176,16 +180,20 @@ fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Currency Dropdown
                         Text("What's your preferred currency?", style = MaterialTheme.typography.subtitle1)
                         Spacer(modifier = Modifier.height(12.dp))
+                        var currencyFieldSize by remember { mutableStateOf(IntSize.Zero) }
                         Box(modifier = Modifier.fillMaxWidth()) {
                             OutlinedTextField(
                                 value = currency,
                                 onValueChange = {},
                                 label = { Text("Currency") },
                                 readOnly = true,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onGloballyPositioned { coordinates ->
+                                        currencyFieldSize = coordinates.size
+                                    }
                             )
                             Spacer(
                                 modifier = Modifier
@@ -194,22 +202,23 @@ fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
                             )
                             DropdownMenu(
                                 expanded = currencyExpanded,
-                                onDismissRequest = { currencyExpanded = false }
+                                onDismissRequest = { currencyExpanded = false },
+                                modifier = Modifier
+                                    .width(with(LocalDensity.current) { currencyFieldSize.width.toDp() }),
+                                properties = PopupProperties(focusable = false)
                             ) {
-                                val currencyList = listOf("INR", "USD", "EUR", "CAD", "GBP", "JPY", "AUD", "CHF", "CNY")
-                                currencyList.forEach {
+                                countryCurrencyList.distinctBy { it.currency }.forEach {
                                     DropdownMenuItem(onClick = {
-                                        currency = it
+                                        currency = it.currency
                                         currencyExpanded = false
                                     }) {
-                                        Text(it)
+                                        Text("${it.flag} ${it.currency}")
                                     }
                                 }
                             }
                         }
                     }
                 }
-
             }
         }
 
@@ -267,10 +276,14 @@ fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
     }
 }
 
+data class CountryInfo(val name: String, val currency: String, val flag: String)
+
 fun getFlagEmoji(countryCode: String): String {
-    return countryCode
-        .uppercase()
-        .map { 0x1F1E6 - 'A'.code + it.code }
-        .map { Character.toChars(it) }
-        .joinToString("")
+    return if (countryCode.length == 2) {
+        val firstChar = Character.codePointAt(countryCode, 0) - 'A'.code + 0x1F1E6
+        val secondChar = Character.codePointAt(countryCode, 1) - 'A'.code + 0x1F1E6
+        String(Character.toChars(firstChar)) + String(Character.toChars(secondChar))
+    } else {
+        "🏳️" // default fallback flag
+    }
 }
