@@ -1,6 +1,5 @@
 package com.example.finmate
 
-import android.app.Activity
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
@@ -69,7 +68,6 @@ fun ModernAuthPage(
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
     var showForgotPassword by remember { mutableStateOf(false) }
-
 
     Surface(
         modifier = Modifier
@@ -198,7 +196,6 @@ fun ModernAuthPage(
                                     if (user?.isEmailVerified == true) {
                                         Toast.makeText(context, "Login Success", Toast.LENGTH_SHORT)
                                             .show()
-
 
                                         email = ""
                                         password = ""

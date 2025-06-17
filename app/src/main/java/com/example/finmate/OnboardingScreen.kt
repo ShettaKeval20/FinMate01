@@ -1,6 +1,6 @@
 package com.example.finmate
 
-import android.content.Context
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,8 +38,6 @@ fun OnboardingScreen(onFinish: () -> Unit) {
             title = "Welcome to FinMate",
             description = "Your smart financial companion to help you take control of your money.",
             animationRes = R.raw.board2,
-
-
         ),
         OnboardingPage(
             title = "Track. Save. Grow.",
@@ -88,7 +86,6 @@ fun OnboardingScreen(onFinish: () -> Unit) {
             indicatorHeight = 10.dp,
             spacing = 8.dp
         )
-
 
         // Bottom buttons logic
         if (pagerState.currentPage < pages.lastIndex) {
