@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.example.finmate.ui.theme.FinMateTheme
+import com.example.finmate.utils.AnalyticsHelper
 import com.facebook.AccessToken
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
@@ -28,20 +29,22 @@ import com.google.firebase.analytics.analytics
 import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.database.FirebaseDatabase
 
 class AuthActivity : ComponentActivity() {
 
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var googleLauncher: ActivityResultLauncher<Intent>
     private lateinit var callbackManager: CallbackManager
-    private lateinit var firebaseAnalytics: FirebaseAnalytics
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        AnalyticsHelper.logEvent("auth_screen_viewed")
+
         // Initialize Google Sign-In Client
         googleSignInClient = GoogleSignInHelper.getGoogleSignInClient(this)
-        firebaseAnalytics = Firebase.analytics
+
 
         // Initialize Facebook SDK
         FacebookSdk.sdkInitialize(applicationContext)
@@ -104,12 +107,25 @@ class AuthActivity : ComponentActivity() {
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     val user = FirebaseAuth.getInstance().currentUser
-                    firebaseAnalytics.logEvent("user_login", null)
-                    Toast.makeText(this, "Welcome ${user?.displayName}", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this, UserProfileActivity::class.java))
-                    finish()
-                }
-                else {
+                    if (user != null) {
+                        val userRef = FirebaseDatabase.getInstance().reference.child("users").child(user.uid)
+                        userRef.get().addOnSuccessListener { dataSnapshot ->
+                            if (dataSnapshot.exists()) {
+                                // Profile exists, go to MainActivity
+                                AnalyticsHelper.logEvent("user_login")
+                                Firebase.analytics.setUserId(FirebaseAuth.getInstance().currentUser?.uid)
+                                Firebase.analytics.setUserProperty("email", FirebaseAuth.getInstance().currentUser?.email)
+                                Toast.makeText(this, "Welcome ${user?.displayName}", Toast.LENGTH_SHORT).show()
+                            } else {
+                                // No profile, go to UserProfileActivity
+                                startActivity(Intent(this, UserProfileActivity::class.java))
+                            }
+                            finish()
+                        }.addOnFailureListener {
+                            Toast.makeText(this, "Failed to load user data", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
                     Toast.makeText(this, "Firebase Auth failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -121,16 +137,31 @@ class AuthActivity : ComponentActivity() {
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     val user = FirebaseAuth.getInstance().currentUser
-                    firebaseAnalytics.logEvent("user_login", null)
-                    Toast.makeText(this, "Welcome ${user?.displayName}", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this, UserProfileActivity::class.java))
-                    finish()
-                }
-                else {
+                    if (user != null) {
+                        val userRef = FirebaseDatabase.getInstance().reference.child("users").child(user.uid)
+                        userRef.get().addOnSuccessListener { dataSnapshot ->
+                            if (dataSnapshot.exists()) {
+                                val user = FirebaseAuth.getInstance().currentUser
+                                AnalyticsHelper.logEvent("user_login")
+                                Firebase.analytics.setUserId(FirebaseAuth.getInstance().currentUser?.uid)
+                                Firebase.analytics.setUserProperty("email", FirebaseAuth.getInstance().currentUser?.email)
+
+                                Toast.makeText(this, "Welcome ${user?.displayName}", Toast.LENGTH_SHORT).show()
+                                startActivity(Intent(this, MainActivity::class.java))
+                            } else {
+                                startActivity(Intent(this, UserProfileActivity::class.java))
+                            }
+                            finish()
+                        }.addOnFailureListener {
+                            Toast.makeText(this, "Failed to load user data", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
                     Toast.makeText(this, "Firebase Auth failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }
     }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -139,11 +170,11 @@ class AuthActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        firebaseAnalytics.logEvent("app_resumed", null)
+        AnalyticsHelper.logEvent("app_resumed", null)
     }
 
     override fun onPause() {
         super.onPause()
-        firebaseAnalytics.logEvent("app_paused", null)
+        AnalyticsHelper.logEvent("app_paused", null)
     }
 }

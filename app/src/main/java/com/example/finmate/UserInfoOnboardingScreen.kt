@@ -1,5 +1,7 @@
 package com.example.finmate
 
+import android.os.Bundle
+import android.provider.Settings.Global.putInt
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -24,6 +26,8 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.PopupProperties
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.analytics
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import java.util.*
@@ -31,6 +35,8 @@ import java.util.*
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
+    Firebase.analytics.logEvent("onboarding_started", null)
+
     val context = LocalContext.current
     val user = FirebaseAuth.getInstance().currentUser ?: return
     val database = FirebaseDatabase.getInstance().reference
@@ -236,12 +242,22 @@ fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
                         1 -> {
                             if (username.isBlank() || age.isBlank()) {
                                 Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
-                            } else step++
+                            } else {
+                                Firebase.analytics.logEvent("onboarding_step_completed", Bundle().apply {
+                                    putInt("step_number", 1)
+                                })
+                                step++
+                            }
                         }
                         2 -> {
                             if (incomeType.isBlank()) {
                                 Toast.makeText(context, "Please select income type", Toast.LENGTH_SHORT).show()
-                            } else step++
+                            } else {
+                                Firebase.analytics.logEvent("onboarding_step_completed", Bundle().apply {
+                                    putInt("step_number", 2)
+                                })
+                                step++
+                            }
                         }
                         3 -> {
                             if (user != null && country.isNotBlank() && currency.isNotBlank()) {
@@ -254,6 +270,11 @@ fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
                                 )
                                 database.child("users").child(user.uid).setValue(userInfo)
                                     .addOnSuccessListener {
+                                        Firebase.analytics.logEvent("onboarding_completed", Bundle().apply {
+                                            putString("income_type", incomeType)
+                                            putString("country", country)
+                                            putString("currency", currency)
+                                        })
                                         Toast.makeText(context, "Profile saved!", Toast.LENGTH_SHORT).show()
                                         onSubmit()
                                     }

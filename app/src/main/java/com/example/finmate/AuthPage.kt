@@ -48,6 +48,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.facebook.login.LoginManager
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.analytics
 import com.google.firebase.auth.FirebaseAuth
 
 // This is my new Design
@@ -194,6 +196,8 @@ fun ModernAuthPage(
                                 if (it.isSuccessful) {
                                     val user = auth.currentUser
                                     if (user?.isEmailVerified == true) {
+                                        Firebase.analytics.setUserId(FirebaseAuth.getInstance().currentUser?.uid)
+                                        Firebase.analytics.setUserProperty("email", FirebaseAuth.getInstance().currentUser?.email)
                                         Toast.makeText(context, "Login Success", Toast.LENGTH_SHORT)
                                             .show()
 
