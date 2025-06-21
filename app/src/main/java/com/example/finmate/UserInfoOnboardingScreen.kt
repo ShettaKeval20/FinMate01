@@ -101,6 +101,7 @@ fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
                         )
                     }
                 }
+
                 2 -> {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text("What's your income type?", style = MaterialTheme.typography.subtitle1)
@@ -141,6 +142,7 @@ fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
 
                     }
                 }
+
                 3 -> {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text("Where do you live?", style = MaterialTheme.typography.subtitle1)
@@ -249,6 +251,7 @@ fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
                                 step++
                             }
                         }
+
                         2 -> {
                             if (incomeType.isBlank()) {
                                 Toast.makeText(context, "Please select income type", Toast.LENGTH_SHORT).show()
@@ -259,6 +262,7 @@ fun UserInfoOnboardingScreen(onSubmit: () -> Unit) {
                                 step++
                             }
                         }
+
                         3 -> {
                             if (user != null && country.isNotBlank() && currency.isNotBlank()) {
                                 val userInfo = mapOf(
