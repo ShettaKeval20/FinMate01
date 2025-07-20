@@ -1,8 +1,12 @@
 package com.example.finmate.features.model
 
+import java.util.Date
+
 data class Transaction(
-    val title: String = "",
-    val amount: Double = 0.0,
-    val description: String = "",
-    val timestamp: Long = System.currentTimeMillis()
+    var title: String = "",
+    var description: String = "",
+    var amount: Double = 0.0,
+    var date: Long = System.currentTimeMillis(),
+    var type: TransactionType = TransactionType.EXPENSE,
+    var category: String = ""
 )

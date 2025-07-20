@@ -9,8 +9,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.finmate.features.addexpense.AddTransactionBottomSheet
+import com.example.finmate.features.model.Transaction
 import com.example.finmate.utils.AnalyticsHelper
 import kotlinx.coroutines.launch
+import com.example.finmate.utils.FirebaseUtils
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 
 //@Composable
 //fun HomeScreen() {
@@ -49,6 +54,9 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(mainNavController: NavHostController) {
+    val context = LocalContext.current
+    var showSheet by remember { mutableStateOf(false) }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Text(
             text = "🏠 Home Screen",
@@ -57,13 +65,37 @@ fun HomeScreen(mainNavController: NavHostController) {
         )
 
         FloatingActionButton(
-            onClick = {
-                mainNavController.navigate("add_expense_flow")
-            },
+            onClick = { showSheet = true },
             modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Add Expense")
+            Icon(Icons.Default.Add, contentDescription = "Add")
+        }
+
+        if (showSheet) {
+            AddTransactionBottomSheet(
+                onDismiss = { showSheet = false },
+                onSubmit = { title, desc, amount, type, category ->
+                    val transaction = Transaction(
+                        title = title,
+                        description = desc,
+                        amount = amount,
+                        date = System.currentTimeMillis(),
+                        type = type,
+                        category = category
+                    )
+
+                    FirebaseUtils.saveTransactionToFirebase(
+                        transaction,
+                        onSuccess = {
+                            Toast.makeText(context, "Transaction saved ✅", Toast.LENGTH_SHORT).show()
+                            showSheet = false
+                        },
+                        onFailure = {
+                            Toast.makeText(context, "Failed to save ❌", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                }
+            )
         }
     }
 }
-

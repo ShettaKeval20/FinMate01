@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.finmate.features.addexpense.AddExpenseScreen
+
 import com.example.finmate.NotificationScreen
 import com.example.finmate.ProfileScreen
 import com.example.finmate.SpendingHistoryScreen
@@ -18,7 +18,8 @@ fun BottomNavGraph(navController: NavHostController,
     NavHost(navController, startDestination = BottomNavItem.Home.route, modifier = modifier) {
         composable(BottomNavItem.Home.route) { HomeScreen(mainNavController)}
         composable(BottomNavItem.History.route) { SpendingHistoryScreen() }
-        composable(BottomNavItem.Add.route) { AddExpenseScreen(mainNavController = navController)}
+        composable(BottomNavItem.Add.route) { SpendingHistoryScreen()}
+//        composable(BottomNavItem.Add.route) { AddExpenseScreen(mainNavController = navController)}
         composable(BottomNavItem.Notifications.route) { NotificationScreen() }
         composable(BottomNavItem.Profile.route) { ProfileScreen() }
     }
