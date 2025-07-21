@@ -4,6 +4,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -33,16 +34,19 @@ fun AddTransactionBottomSheet(
     onSubmit: (String, String, Double, TransactionType, TransactionCategory) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var selectedTab by remember { mutableStateOf(0) } // 0 = Expense, 1 = Income
+    var selectedTab by remember { mutableStateOf(0) } // 0 = Income, 1 = Expense
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
 
     val transactionType = if (selectedTab == 0) TransactionType.INCOME else TransactionType.EXPENSE
-    val availableCategories = TransactionCategory.getCategoriesByType(transactionType)
-    var selectedCategory by remember { mutableStateOf<TransactionCategory?>(null) }
     var selectedDateTime by remember { mutableStateOf(System.currentTimeMillis()) }
 
+    val selectedCategory = remember { mutableStateOf<TransactionCategory?>(null) }
+    val selectedSubCategory = remember { mutableStateOf<String?>(null) }
+
+    val availableCategories = TransactionCategory.getCategoriesByType(transactionType)
+    val availableSubCategories = TransactionCategory.subCategoryMap[selectedCategory.value] ?: emptyList()
 
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -52,29 +56,29 @@ fun AddTransactionBottomSheet(
         sheetState = sheetState,
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight() // Sheet covers most of the screen
-            .padding(top = 250.dp) // Starts slightly lower from top
-
+            .fillMaxHeight()
+            .padding(top = 250.dp)
     ) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .verticalScroll(scrollState)) {
-
-            // Tab selection for Income/Expense
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .verticalScroll(scrollState)
+        ) {
             TabRow(selectedTabIndex = selectedTab) {
-                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Income") })
-                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Expense") })
+                Tab(selected = selectedTab == 0, onClick = {
+                    selectedTab = 0
+                    selectedCategory.value = null
+                    selectedSubCategory.value = null
+                }, text = { Text("Income") })
+                Tab(selected = selectedTab == 1, onClick = {
+                    selectedTab = 1
+                    selectedCategory.value = null
+                    selectedSubCategory.value = null
+                }, text = { Text("Expense") })
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-//            Text(
-//                text = "Add ${transactionType.name.lowercase().replaceFirstChar { it.uppercase() }}",
-//                style = MaterialTheme.typography.titleLarge
-//            )
-//
-//            Spacer(modifier = Modifier.height(12.dp))
 
             InputCard(
                 value = title,
@@ -103,16 +107,63 @@ fun AddTransactionBottomSheet(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Category Selector
             CategorySelector(
-                selectedCategory = selectedCategory,
-                onCategorySelected = { selected ->
-                    selectedCategory = selected
+                selectedCategory = selectedCategory.value,
+                onCategorySelected = {
+                    selectedCategory.value = it
+                    selectedSubCategory.value = null
                 },
                 transactionType = transactionType
             )
 
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Spacer(modifier = Modifier.height(20.dp))
+            // Subcategory Dropdown
+            // Horizontal Subcategory Chip Selector
+            if (availableSubCategories.isNotEmpty()) {
+                Text(
+                    text = "Select Subcategory",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
+                    ),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(availableSubCategories.size) { index ->
+                        val subCategory = availableSubCategories[index]
+                        val isSelected = selectedSubCategory.value == subCategory
+
+                        Surface(
+                            onClick = { selectedSubCategory.value = subCategory },
+                            shape = RoundedCornerShape(20.dp),
+                            color = if (isSelected)
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                            else
+                                MaterialTheme.colorScheme.surfaceVariant,
+                            border = if (isSelected)
+                                BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            else null,
+                        ) {
+                            Text(
+                                text = subCategory,
+                                color = if (isSelected)
+                                    MaterialTheme.colorScheme.primary
+                                else Color.Gray,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             Button(
                 onClick = {
@@ -124,14 +175,15 @@ fun AddTransactionBottomSheet(
                             amount = parsedAmount,
                             date = System.currentTimeMillis(),
                             type = transactionType,
-                            category = selectedCategory?.label ?: "Others"
+                            category = selectedCategory.value?.label ?: "Others",
+                            subCategory = selectedSubCategory.value ?: ""
                         )
 
                         FirebaseTransactionManager.saveTransaction(
                             transaction,
                             onSuccess = {
                                 Log.d("Firebase", "Transaction saved successfully.")
-                                onDismiss()  // Close the bottom sheet after saving
+                                onDismiss()
                             },
                             onFailure = {
                                 Log.e("Firebase", "Failed to save transaction: ${it.message}")
@@ -146,6 +198,7 @@ fun AddTransactionBottomSheet(
         }
     }
 }
+
 
 @Composable
 fun DropdownMenuBox(

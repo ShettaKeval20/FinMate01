@@ -1,4 +1,3 @@
-
 package com.example.finmate.features.model
 
 enum class TransactionCategory(val label: String, val type: TransactionType?) {
@@ -7,7 +6,6 @@ enum class TransactionCategory(val label: String, val type: TransactionType?) {
     FREELANCING("Freelancing", TransactionType.INCOME),
     BUSINESS("Business", TransactionType.INCOME),
     INVESTMENT("Investment", TransactionType.INCOME),
-//    GIFT("Gift", TransactionType.INCOME),
 
     // Expense
     FOOD("Food", TransactionType.EXPENSE),
@@ -23,8 +21,31 @@ enum class TransactionCategory(val label: String, val type: TransactionType?) {
     OTHERS("Others", null);
 
     companion object {
+
         fun getCategoriesByType(type: TransactionType): List<TransactionCategory> {
             return values().filter { it.type == type || it.type == null }
         }
+
+        val subCategoryMap = mapOf(
+            // INCOME
+            SALARY to listOf("Monthly Salary", "Annual Bonus", "Overtime"),
+            FREELANCING to listOf("Upwork", "Fiverr", "Direct Clients", "Freelance Projects"),
+            BUSINESS to listOf("Product Sales", "Service Revenue", "Business Investment Return"),
+            INVESTMENT to listOf("Stocks", "Mutual Funds", "Dividends", "Crypto", "Real Estate"),
+
+            // EXPENSE
+            FOOD to listOf("Groceries", "Dining Out", "Snacks", "Cafes", "Takeaway"),
+            TRANSPORT to listOf("Bus", "Train", "Taxi", "Fuel", "Car Maintenance", "Flight"),
+            RENT to listOf("Home Rent", "Office Rent", "Storage Rent"),
+            UTILITIES to listOf("Electricity", "Water", "Internet", "Gas", "Mobile Recharge"),
+            ENTERTAINMENT to listOf("Movies", "Concerts", "Games", "Streaming Services", "Events"),
+            SHOPPING to listOf("Clothes", "Electronics", "Accessories", "Home Decor", "Gadgets"),
+            HEALTH to listOf("Medicines", "Doctor Visits", "Health Insurance", "Fitness", "Therapy"),
+            EDUCATION to listOf("Tuition", "Books", "Online Courses", "Workshops", "Exam Fees"),
+
+            // COMMON
+            OTHERS to listOf("Miscellaneous", "Uncategorized")
+        )
+
     }
 }
