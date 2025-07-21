@@ -1,9 +1,14 @@
 package com.example.finmate.features.addexpense
 
+import TransactionCategory
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -16,8 +21,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.finmate.features.model.TransactionCategory
+import com.example.finmate.features.model.Transaction
 import com.example.finmate.features.model.TransactionType
+import com.example.finmate.firebase.FirebaseTransactionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,48 +37,46 @@ fun AddTransactionBottomSheet(
     var description by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
 
-    val transactionType = if (selectedTab == 0) TransactionType.EXPENSE else TransactionType.INCOME
+    val transactionType = if (selectedTab == 0) TransactionType.INCOME else TransactionType.EXPENSE
     val availableCategories = TransactionCategory.getCategoriesByType(transactionType)
     var selectedCategory by remember { mutableStateOf(availableCategories.first()) }
+
+    val scrollState = rememberScrollState()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        modifier = Modifier.fillMaxHeight(0.85f)
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight() // Sheet covers most of the screen
+            .padding(top = 250.dp) // Starts slightly lower from top
+
     ) {
         Column(modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)) {
+            .padding(16.dp)
+            .verticalScroll(scrollState)) {
 
             // Tab selection for Income/Expense
             TabRow(selectedTabIndex = selectedTab) {
-                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Expense") })
-                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Income") })
+                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Income") })
+                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Expense") })
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Add ${transactionType.name.lowercase().replaceFirstChar { it.uppercase() }}",
-                style = MaterialTheme.typography.titleLarge
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
+//            Text(
+//                text = "Add ${transactionType.name.lowercase().replaceFirstChar { it.uppercase() }}",
+//                style = MaterialTheme.typography.titleLarge
+//            )
+//
+//            Spacer(modifier = Modifier.height(12.dp))
 
             InputCard(
                 value = title,
                 onValueChange = { title = it },
                 label = "Title",
                 leadingIcon = Icons.Default.Title
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            InputCard(
-                value = description,
-                onValueChange = { description = it },
-                label = "Description",
-                leadingIcon = Icons.Default.Description
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -86,6 +90,15 @@ fun AddTransactionBottomSheet(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            InputCard(
+                value = description,
+                onValueChange = { description = it },
+                label = "Description",
+                leadingIcon = Icons.Default.Description
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             CategorySelector(
                 selectedCategory = selectedCategory.name,
                 onCategorySelected = { selected ->
@@ -93,20 +106,41 @@ fun AddTransactionBottomSheet(
                 }
             )
 
+
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
                 onClick = {
                     val parsedAmount = amount.toDoubleOrNull()
                     if (!title.isBlank() && parsedAmount != null) {
-                        onSubmit(title, description, parsedAmount, transactionType, selectedCategory)
-                        onDismiss()
+                        val transaction = Transaction(
+                            title = title,
+                            description = description,
+                            amount = parsedAmount,
+                            date = System.currentTimeMillis(),
+                            type = transactionType,
+                            category = selectedCategory.name
+                        )
+
+                        FirebaseTransactionManager.saveTransaction(
+                            transaction,
+                            onSuccess = {
+                                Log.d("Firebase", "Transaction saved successfully.")
+                                onDismiss()  // Close the bottom sheet after saving
+                            },
+                            onFailure = {
+                                Log.e("Firebase", "Failed to save transaction: ${it.message}")
+                            }
+                        )
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Save ${transactionType.name.lowercase().replaceFirstChar { it.uppercase() }}")
             }
+
+
+
         }
     }
 }
@@ -117,34 +151,21 @@ fun CategorySelector(
     onCategorySelected: (String) -> Unit
 ) {
     val allCategories = listOf(
-        "Salary" to Icons.Default.AttachMoney,
-        "Freelance" to Icons.Default.AttachMoney,
-        "Business" to Icons.Default.AttachMoney,
-        "Investments" to Icons.Default.AttachMoney,
-        "Gifts" to Icons.Default.Favorite,
-        "Food & Dining" to Icons.Default.Restaurant,
-        "Transport" to Icons.Default.DirectionsCar,
-        "Shopping" to Icons.Default.ShoppingCart,
-        "Bills & Utilities" to Icons.Default.Receipt,
-        "Health & Medical" to Icons.Default.Favorite,
-        "Entertainment" to Icons.Default.Category,
-        "Education" to Icons.Default.Category,
-        "Rent" to Icons.Default.Category,
-        "Travel" to Icons.Default.Category,
-        "Loan Payments" to Icons.Default.Category,
-        "Taxes" to Icons.Default.Category,
-        "Insurance" to Icons.Default.Category,
-        "Personal Care" to Icons.Default.Category,
-        "Subscriptions" to Icons.Default.Category,
-        "Others" to Icons.Default.Category
+        "Salary",
+        "Freelancing",
+        "Business",
+        "Investment",
+        "Gift",
+        "Food",
+        "Transport",
+        "Rent",
+        "Utilities",
+        "Entertainment",
+        "Shopping",
+        "Health",
+        "Education",
+        "Others"
     )
-
-    val topCategories = allCategories.take(5)
-    val remainingCategories = allCategories.drop(5)
-
-    var showAllCategories by remember { mutableStateOf(false) }
-
-    val categoriesToDisplay = if (showAllCategories) allCategories else topCategories + ("Others" to Icons.Default.Category)
 
     Text(
         text = "Select Category",
@@ -155,7 +176,7 @@ fun CategorySelector(
         modifier = Modifier.padding(bottom = 12.dp)
     )
 
-    val chunked = categoriesToDisplay.chunked(3)
+    val chunked = allCategories.chunked(3)
 
     Column(modifier = Modifier.fillMaxWidth()) {
         chunked.forEach { rowItems ->
@@ -163,7 +184,7 @@ fun CategorySelector(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                rowItems.forEach { (label, icon) ->
+                rowItems.forEach { label ->
                     val isSelected = selectedCategory == label
                     val background = if (isSelected)
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
@@ -172,11 +193,7 @@ fun CategorySelector(
 
                     Surface(
                         onClick = {
-                            if (label == "Others") {
-                                showAllCategories = true
-                            } else {
-                                onCategorySelected(label)
-                            }
+                            onCategorySelected(label)
                         },
                         shape = RoundedCornerShape(14.dp),
                         color = background,
@@ -187,20 +204,10 @@ fun CategorySelector(
                             .weight(1f)
                             .height(40.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
+                        Box(
+                            contentAlignment = Alignment.Center,
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = label,
-                                tint = if (isSelected)
-                                    MaterialTheme.colorScheme.primary
-                                else Color.Gray,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = label,
                                 color = if (isSelected)
@@ -211,6 +218,7 @@ fun CategorySelector(
                         }
                     }
                 }
+
                 if (rowItems.size < 3) {
                     repeat(3 - rowItems.size) {
                         Spacer(modifier = Modifier.weight(1f))
@@ -221,6 +229,7 @@ fun CategorySelector(
         }
     }
 }
+
 
 @Composable
 fun InputCard(

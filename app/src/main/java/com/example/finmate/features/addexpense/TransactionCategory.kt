@@ -1,6 +1,4 @@
-package com.example.finmate.features.model
-
-import com.example.finmate.features.model.TransactionType  // import enum
+import com.example.finmate.features.model.TransactionType
 
 sealed class TransactionCategory(val name: String) {
     object Salary : TransactionCategory("Salary")
@@ -24,7 +22,6 @@ sealed class TransactionCategory(val name: String) {
             return when (type) {
                 TransactionType.INCOME -> listOf(Salary, Business, Investment, Gift, Freelancing)
                 TransactionType.EXPENSE -> listOf(Food, Transport, Rent, Utilities, Entertainment, Shopping, Health, Education, Others)
-                // No else needed because all enum cases covered
             }
         }
     }
