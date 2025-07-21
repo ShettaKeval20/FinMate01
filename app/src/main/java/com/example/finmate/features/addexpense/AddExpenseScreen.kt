@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -40,8 +41,11 @@ fun AddTransactionBottomSheet(
     val transactionType = if (selectedTab == 0) TransactionType.INCOME else TransactionType.EXPENSE
     val availableCategories = TransactionCategory.getCategoriesByType(transactionType)
     var selectedCategory by remember { mutableStateOf<TransactionCategory?>(null) }
+    var selectedDateTime by remember { mutableStateOf(System.currentTimeMillis()) }
+
 
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -142,6 +146,41 @@ fun AddTransactionBottomSheet(
         }
     }
 }
+
+@Composable
+fun DropdownMenuBox(
+    label: String,
+    options: List<String>,
+    selectedOption: String,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        OutlinedButton(
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("$label: $selectedOption")
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onOptionSelected(option)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
 
 @Composable
 fun CategorySelector(
