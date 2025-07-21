@@ -1,6 +1,7 @@
 package com.example.finmate.features.addexpense
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -31,14 +32,14 @@ fun AddTransactionBottomSheet(
     onSubmit: (String, String, Double, TransactionType, TransactionCategory) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var selectedTab by remember { mutableStateOf(0) } // 0 = Income, 1 = Expense
+    var selectedTab by remember { mutableStateOf(0) } // 0 = Expense, 1 = Income
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
 
     val transactionType = if (selectedTab == 0) TransactionType.INCOME else TransactionType.EXPENSE
     val availableCategories = TransactionCategory.getCategoriesByType(transactionType)
-    var selectedCategory by remember { mutableStateOf(availableCategories.first()) }
+    var selectedCategory by remember { mutableStateOf<TransactionCategory?>(null) }
 
     val scrollState = rememberScrollState()
 
@@ -47,22 +48,29 @@ fun AddTransactionBottomSheet(
         sheetState = sheetState,
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight()
-            .padding(top = 250.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .verticalScroll(scrollState)
-        ) {
+            .fillMaxHeight() // Sheet covers most of the screen
+            .padding(top = 250.dp) // Starts slightly lower from top
 
+    ) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .verticalScroll(scrollState)) {
+
+            // Tab selection for Income/Expense
             TabRow(selectedTabIndex = selectedTab) {
                 Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Income") })
                 Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Expense") })
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+
+//            Text(
+//                text = "Add ${transactionType.name.lowercase().replaceFirstChar { it.uppercase() }}",
+//                style = MaterialTheme.typography.titleLarge
+//            )
+//
+//            Spacer(modifier = Modifier.height(12.dp))
 
             InputCard(
                 value = title,
@@ -91,12 +99,13 @@ fun AddTransactionBottomSheet(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Category Selector
             CategorySelector(
-                categories = availableCategories,
-                selectedCategory = selectedCategory,
-                onCategorySelected = { selectedCategory = it }
+                selectedCategory = selectedCategory?.name ?: "Others",
+                onCategorySelected = { selected ->
+                    selectedCategory = availableCategories.firstOrNull { it.name == selected } ?: selectedCategory
+                }
             )
+
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -110,14 +119,14 @@ fun AddTransactionBottomSheet(
                             amount = parsedAmount,
                             date = System.currentTimeMillis(),
                             type = transactionType,
-                            category = selectedCategory.name
+                            category = selectedCategory?.name ?: "Others"
                         )
 
                         FirebaseTransactionManager.saveTransaction(
                             transaction,
                             onSuccess = {
                                 Log.d("Firebase", "Transaction saved successfully.")
-                                onDismiss()
+                                onDismiss()  // Close the bottom sheet after saving
                             },
                             onFailure = {
                                 Log.e("Firebase", "Failed to save transaction: ${it.message}")
@@ -135,10 +144,26 @@ fun AddTransactionBottomSheet(
 
 @Composable
 fun CategorySelector(
-    categories: List<TransactionCategory>,
-    selectedCategory: TransactionCategory,
-    onCategorySelected: (TransactionCategory) -> Unit
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit
 ) {
+    val allCategories = listOf(
+        "Salary",
+        "Freelancing",
+        "Business",
+        "Investment",
+        "Gift",
+        "Food",
+        "Transport",
+        "Rent",
+        "Utilities",
+        "Entertainment",
+        "Shopping",
+        "Health",
+        "Education",
+        "Others"
+    )
+
     Text(
         text = "Select Category",
         style = MaterialTheme.typography.titleMedium.copy(
@@ -148,7 +173,7 @@ fun CategorySelector(
         modifier = Modifier.padding(bottom = 12.dp)
     )
 
-    val chunked = categories.chunked(3)
+    val chunked = allCategories.chunked(3)
 
     Column(modifier = Modifier.fillMaxWidth()) {
         chunked.forEach { rowItems ->
@@ -156,15 +181,17 @@ fun CategorySelector(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                rowItems.forEach { category ->
-                    val isSelected = selectedCategory == category
+                rowItems.forEach { label ->
+                    val isSelected = selectedCategory == label
                     val background = if (isSelected)
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                     else
                         MaterialTheme.colorScheme.surfaceVariant
 
                     Surface(
-                        onClick = { onCategorySelected(category) },
+                        onClick = {
+                            onCategorySelected(label)
+                        },
                         shape = RoundedCornerShape(14.dp),
                         color = background,
                         border = if (isSelected)
@@ -179,7 +206,7 @@ fun CategorySelector(
                             modifier = Modifier.fillMaxSize()
                         ) {
                             Text(
-                                text = category.label,
+                                text = label,
                                 color = if (isSelected)
                                     MaterialTheme.colorScheme.primary
                                 else Color.Gray,
@@ -199,6 +226,7 @@ fun CategorySelector(
         }
     }
 }
+
 
 @Composable
 fun InputCard(
