@@ -1,8 +1,6 @@
 package com.example.finmate.features.addexpense
 
-import TransactionCategory
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.finmate.features.model.Transaction
+import com.example.finmate.features.model.TransactionCategory
 import com.example.finmate.features.model.TransactionType
 import com.example.finmate.firebase.FirebaseTransactionManager
 
@@ -32,7 +31,7 @@ fun AddTransactionBottomSheet(
     onSubmit: (String, String, Double, TransactionType, TransactionCategory) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var selectedTab by remember { mutableStateOf(0) } // 0 = Expense, 1 = Income
+    var selectedTab by remember { mutableStateOf(0) } // 0 = Income, 1 = Expense
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
@@ -48,29 +47,22 @@ fun AddTransactionBottomSheet(
         sheetState = sheetState,
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight() // Sheet covers most of the screen
-            .padding(top = 250.dp) // Starts slightly lower from top
-
+            .fillMaxHeight()
+            .padding(top = 250.dp)
     ) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .verticalScroll(scrollState)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .verticalScroll(scrollState)
+        ) {
 
-            // Tab selection for Income/Expense
             TabRow(selectedTabIndex = selectedTab) {
                 Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Income") })
                 Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Expense") })
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-//            Text(
-//                text = "Add ${transactionType.name.lowercase().replaceFirstChar { it.uppercase() }}",
-//                style = MaterialTheme.typography.titleLarge
-//            )
-//
-//            Spacer(modifier = Modifier.height(12.dp))
 
             InputCard(
                 value = title,
@@ -99,13 +91,12 @@ fun AddTransactionBottomSheet(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Category Selector
             CategorySelector(
-                selectedCategory = selectedCategory.name,
-                onCategorySelected = { selected ->
-                    selectedCategory = availableCategories.firstOrNull { it.name == selected } ?: selectedCategory
-                }
+                categories = availableCategories,
+                selectedCategory = selectedCategory,
+                onCategorySelected = { selectedCategory = it }
             )
-
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -126,7 +117,7 @@ fun AddTransactionBottomSheet(
                             transaction,
                             onSuccess = {
                                 Log.d("Firebase", "Transaction saved successfully.")
-                                onDismiss()  // Close the bottom sheet after saving
+                                onDismiss()
                             },
                             onFailure = {
                                 Log.e("Firebase", "Failed to save transaction: ${it.message}")
@@ -138,35 +129,16 @@ fun AddTransactionBottomSheet(
             ) {
                 Text("Save ${transactionType.name.lowercase().replaceFirstChar { it.uppercase() }}")
             }
-
-
-
         }
     }
 }
 
 @Composable
 fun CategorySelector(
-    selectedCategory: String,
-    onCategorySelected: (String) -> Unit
+    categories: List<TransactionCategory>,
+    selectedCategory: TransactionCategory,
+    onCategorySelected: (TransactionCategory) -> Unit
 ) {
-    val allCategories = listOf(
-        "Salary",
-        "Freelancing",
-        "Business",
-        "Investment",
-        "Gift",
-        "Food",
-        "Transport",
-        "Rent",
-        "Utilities",
-        "Entertainment",
-        "Shopping",
-        "Health",
-        "Education",
-        "Others"
-    )
-
     Text(
         text = "Select Category",
         style = MaterialTheme.typography.titleMedium.copy(
@@ -176,7 +148,7 @@ fun CategorySelector(
         modifier = Modifier.padding(bottom = 12.dp)
     )
 
-    val chunked = allCategories.chunked(3)
+    val chunked = categories.chunked(3)
 
     Column(modifier = Modifier.fillMaxWidth()) {
         chunked.forEach { rowItems ->
@@ -184,17 +156,15 @@ fun CategorySelector(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                rowItems.forEach { label ->
-                    val isSelected = selectedCategory == label
+                rowItems.forEach { category ->
+                    val isSelected = selectedCategory == category
                     val background = if (isSelected)
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                     else
                         MaterialTheme.colorScheme.surfaceVariant
 
                     Surface(
-                        onClick = {
-                            onCategorySelected(label)
-                        },
+                        onClick = { onCategorySelected(category) },
                         shape = RoundedCornerShape(14.dp),
                         color = background,
                         border = if (isSelected)
@@ -209,7 +179,7 @@ fun CategorySelector(
                             modifier = Modifier.fillMaxSize()
                         ) {
                             Text(
-                                text = label,
+                                text = category.label,
                                 color = if (isSelected)
                                     MaterialTheme.colorScheme.primary
                                 else Color.Gray,
@@ -229,7 +199,6 @@ fun CategorySelector(
         }
     }
 }
-
 
 @Composable
 fun InputCard(
