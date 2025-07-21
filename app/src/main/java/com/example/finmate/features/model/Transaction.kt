@@ -8,5 +8,5 @@ data class Transaction(
     var amount: Double = 0.0,
     var date: Long = System.currentTimeMillis(),
     var type: TransactionType = TransactionType.EXPENSE,
-    var category: String = "",
+    var category: String = ""
 )

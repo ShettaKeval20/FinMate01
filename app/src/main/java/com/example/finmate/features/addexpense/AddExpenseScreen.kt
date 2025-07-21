@@ -100,10 +100,11 @@ fun AddTransactionBottomSheet(
             Spacer(modifier = Modifier.height(12.dp))
 
             CategorySelector(
-                selectedCategory = selectedCategory?.name ?: "Others",
+                selectedCategory = selectedCategory,
                 onCategorySelected = { selected ->
-                    selectedCategory = availableCategories.firstOrNull { it.name == selected } ?: selectedCategory
-                }
+                    selectedCategory = selected
+                },
+                transactionType = transactionType
             )
 
 
@@ -119,7 +120,7 @@ fun AddTransactionBottomSheet(
                             amount = parsedAmount,
                             date = System.currentTimeMillis(),
                             type = transactionType,
-                            category = selectedCategory?.name ?: "Others"
+                            category = selectedCategory?.label ?: "Others"
                         )
 
                         FirebaseTransactionManager.saveTransaction(
@@ -144,25 +145,11 @@ fun AddTransactionBottomSheet(
 
 @Composable
 fun CategorySelector(
-    selectedCategory: String,
-    onCategorySelected: (String) -> Unit
+    selectedCategory: TransactionCategory?,
+    onCategorySelected: (TransactionCategory) -> Unit,
+    transactionType: TransactionType
 ) {
-    val allCategories = listOf(
-        "Salary",
-        "Freelancing",
-        "Business",
-        "Investment",
-        "Gift",
-        "Food",
-        "Transport",
-        "Rent",
-        "Utilities",
-        "Entertainment",
-        "Shopping",
-        "Health",
-        "Education",
-        "Others"
-    )
+    val filteredCategories = TransactionCategory.getCategoriesByType(transactionType)
 
     Text(
         text = "Select Category",
@@ -173,7 +160,7 @@ fun CategorySelector(
         modifier = Modifier.padding(bottom = 12.dp)
     )
 
-    val chunked = allCategories.chunked(3)
+    val chunked = filteredCategories.chunked(3)
 
     Column(modifier = Modifier.fillMaxWidth()) {
         chunked.forEach { rowItems ->
@@ -181,8 +168,8 @@ fun CategorySelector(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                rowItems.forEach { label ->
-                    val isSelected = selectedCategory == label
+                rowItems.forEach { category ->
+                    val isSelected = selectedCategory == category
                     val background = if (isSelected)
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                     else
@@ -190,7 +177,7 @@ fun CategorySelector(
 
                     Surface(
                         onClick = {
-                            onCategorySelected(label)
+                            onCategorySelected(category)
                         },
                         shape = RoundedCornerShape(14.dp),
                         color = background,
@@ -206,7 +193,7 @@ fun CategorySelector(
                             modifier = Modifier.fillMaxSize()
                         ) {
                             Text(
-                                text = label,
+                                text = category.label,
                                 color = if (isSelected)
                                     MaterialTheme.colorScheme.primary
                                 else Color.Gray,

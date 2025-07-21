@@ -1,3 +1,4 @@
+
 package com.example.finmate.features.model
 
 enum class TransactionCategory(val label: String, val type: TransactionType?) {
