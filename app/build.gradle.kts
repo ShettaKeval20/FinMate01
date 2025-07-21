@@ -98,6 +98,8 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.database)
 
+    implementation ("androidx.compose.foundation:foundation:1.4.3")
+
 
 
 
@@ -108,4 +110,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
 }

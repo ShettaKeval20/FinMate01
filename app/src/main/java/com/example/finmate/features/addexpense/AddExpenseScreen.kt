@@ -1,140 +1,69 @@
 package com.example.finmate.features.addexpense
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.MoneyOff
-import androidx.compose.material.icons.filled.Title
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.example.finmate.features.model.TransactionCategory
 import com.example.finmate.features.model.TransactionType
-
-// Add this at the top with your imports
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTransactionBottomSheet(
     onDismiss: () -> Unit,
-    onSubmit: (title: String, description: String, amount: Double, type: TransactionType, category: String) -> Unit
+    onSubmit: (String, String, Double, TransactionType, TransactionCategory) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    var selectedTabIndex by remember { mutableStateOf(0) }
+    var selectedTab by remember { mutableStateOf(0) } // 0 = Expense, 1 = Income
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
-    var showValidationError by remember { mutableStateOf(false) }
 
-    val categories = listOf("Food", "Transport", "Shopping", "Bills", "Health", "Salary", "Others")
-    val transactionType = if (selectedTabIndex == 0) TransactionType.INCOME else TransactionType.EXPENSE
+    val transactionType = if (selectedTab == 0) TransactionType.EXPENSE else TransactionType.INCOME
+    val availableCategories = TransactionCategory.getCategoriesByType(transactionType)
+    var selectedCategory by remember { mutableStateOf(availableCategories.first()) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 550.dp, max = 750.dp),
-        shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp),
-        tonalElevation = 20.dp,
-        scrimColor = Color.Black.copy(alpha = 0.2f)
+        modifier = Modifier.fillMaxHeight(0.85f)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.98f),
-                            MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
-                        )
-                    ),
-                    shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
-                )
-                .padding(horizontal = 24.dp, vertical = 24.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(60.dp)
-                    .height(6.dp)
-                    .clip(CircleShape)
-                    .background(Color.Gray.copy(alpha = 0.4f))
-                    .align(Alignment.CenterHorizontally)
-            )
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)) {
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Tabs
-            TabRow(
-                selectedTabIndex = selectedTabIndex,
-                containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.primary,
-                indicator = { tabPositions ->
-                    TabRowDefaults.Indicator(
-                        Modifier
-                            .tabIndicatorOffset(tabPositions[selectedTabIndex])
-                            .height(3.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            ) {
-                Tab(
-                    selected = selectedTabIndex == 0,
-                    onClick = { selectedTabIndex = 0 },
-                    text = { Text("Income", fontWeight = FontWeight.SemiBold) },
-                    icon = { Icon(Icons.Default.AttachMoney, contentDescription = null) }
-                )
-                Tab(
-                    selected = selectedTabIndex == 1,
-                    onClick = { selectedTabIndex = 1 },
-                    text = { Text("Expense", fontWeight = FontWeight.SemiBold) },
-                    icon = { Icon(Icons.Default.MoneyOff, contentDescription = null) }
-                )
+            // Tab selection for Income/Expense
+            TabRow(selectedTabIndex = selectedTab) {
+                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Expense") })
+                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Income") })
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = "Add ${transactionType.name.lowercase().replaceFirstChar { it.uppercase() }}",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                ),
-                color = MaterialTheme.colorScheme.primary
+                style = MaterialTheme.typography.titleLarge
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             InputCard(
                 value = title,
-                onValueChange = {
-                    title = it
-                    showValidationError = false
-                },
+                onValueChange = { title = it },
                 label = "Title",
-                leadingIcon = Icons.Default.Title,
-                isError = showValidationError && title.isBlank(),
-                errorText = if (showValidationError && title.isBlank()) "Title cannot be empty" else null
+                leadingIcon = Icons.Default.Title
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -143,92 +72,155 @@ fun AddTransactionBottomSheet(
                 value = description,
                 onValueChange = { description = it },
                 label = "Description",
-                leadingIcon = Icons.Default.Description,
-                maxLines = 3
+                leadingIcon = Icons.Default.Description
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             InputCard(
                 value = amount,
-                onValueChange = {
-                    amount = it
-                    showValidationError = false
-                },
+                onValueChange = { amount = it },
                 label = "Amount",
-                leadingIcon = if (transactionType == TransactionType.INCOME) Icons.Default.AttachMoney else Icons.Default.MoneyOff,
-                isError = showValidationError && amount.toDoubleOrNull() == null,
-                errorText = if (showValidationError && amount.toDoubleOrNull() == null) "Enter valid amount" else null
+                leadingIcon = Icons.Default.AttachMoney
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // Category dropdown
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = category,
-                    onValueChange = { category = it },
-                    label = { Text("Category") },
-                    leadingIcon = { Icon(Icons.Default.Category, contentDescription = null) },
-                    readOnly = true,
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                    modifier = Modifier
-                        .menuAnchor()
-                        .clip(RoundedCornerShape(14.dp))
-                        .fillMaxWidth()
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    categories.forEach { item ->
-                        DropdownMenuItem(
-                            text = { Text(item) },
-                            onClick = {
-                                category = item
-                                expanded = false
-                            }
-                        )
-                    }
+            CategorySelector(
+                selectedCategory = selectedCategory.name,
+                onCategorySelected = { selected ->
+                    selectedCategory = availableCategories.firstOrNull { it.name == selected } ?: selectedCategory
                 }
-            }
+            )
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Button(
                 onClick = {
                     val parsedAmount = amount.toDoubleOrNull()
-                    if (title.isNotBlank() && parsedAmount != null && category.isNotBlank()) {
-                        onSubmit(title, description, parsedAmount, transactionType, category)
+                    if (!title.isBlank() && parsedAmount != null) {
+                        onSubmit(title, description, parsedAmount, transactionType, selectedCategory)
                         onDismiss()
-                    } else {
-                        showValidationError = true
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(18.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White
-                )
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    "Save ${transactionType.name.lowercase().replaceFirstChar { it.uppercase() }}",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                )
+                Text("Save ${transactionType.name.lowercase().replaceFirstChar { it.uppercase() }}")
             }
         }
     }
 }
 
+@Composable
+fun CategorySelector(
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit
+) {
+    val allCategories = listOf(
+        "Salary" to Icons.Default.AttachMoney,
+        "Freelance" to Icons.Default.AttachMoney,
+        "Business" to Icons.Default.AttachMoney,
+        "Investments" to Icons.Default.AttachMoney,
+        "Gifts" to Icons.Default.Favorite,
+        "Food & Dining" to Icons.Default.Restaurant,
+        "Transport" to Icons.Default.DirectionsCar,
+        "Shopping" to Icons.Default.ShoppingCart,
+        "Bills & Utilities" to Icons.Default.Receipt,
+        "Health & Medical" to Icons.Default.Favorite,
+        "Entertainment" to Icons.Default.Category,
+        "Education" to Icons.Default.Category,
+        "Rent" to Icons.Default.Category,
+        "Travel" to Icons.Default.Category,
+        "Loan Payments" to Icons.Default.Category,
+        "Taxes" to Icons.Default.Category,
+        "Insurance" to Icons.Default.Category,
+        "Personal Care" to Icons.Default.Category,
+        "Subscriptions" to Icons.Default.Category,
+        "Others" to Icons.Default.Category
+    )
+
+    val topCategories = allCategories.take(5)
+    val remainingCategories = allCategories.drop(5)
+
+    var showAllCategories by remember { mutableStateOf(false) }
+
+    val categoriesToDisplay = if (showAllCategories) allCategories else topCategories + ("Others" to Icons.Default.Category)
+
+    Text(
+        text = "Select Category",
+        style = MaterialTheme.typography.titleMedium.copy(
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        ),
+        modifier = Modifier.padding(bottom = 12.dp)
+    )
+
+    val chunked = categoriesToDisplay.chunked(3)
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        chunked.forEach { rowItems ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                rowItems.forEach { (label, icon) ->
+                    val isSelected = selectedCategory == label
+                    val background = if (isSelected)
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                    else
+                        MaterialTheme.colorScheme.surfaceVariant
+
+                    Surface(
+                        onClick = {
+                            if (label == "Others") {
+                                showAllCategories = true
+                            } else {
+                                onCategorySelected(label)
+                            }
+                        },
+                        shape = RoundedCornerShape(14.dp),
+                        color = background,
+                        border = if (isSelected)
+                            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                        else null,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = label,
+                                tint = if (isSelected)
+                                    MaterialTheme.colorScheme.primary
+                                else Color.Gray,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = label,
+                                color = if (isSelected)
+                                    MaterialTheme.colorScheme.primary
+                                else Color.Gray,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+                if (rowItems.size < 3) {
+                    repeat(3 - rowItems.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
+}
 
 @Composable
 fun InputCard(
@@ -276,4 +268,3 @@ fun InputCard(
         }
     }
 }
-

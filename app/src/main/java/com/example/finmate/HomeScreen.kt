@@ -76,12 +76,13 @@ fun HomeScreen(mainNavController: NavHostController) {
                 onDismiss = { showSheet = false },
                 onSubmit = { title, desc, amount, type, category ->
                     val transaction = Transaction(
+
                         title = title,
                         description = desc,
                         amount = amount,
                         date = System.currentTimeMillis(),
                         type = type,
-                        category = category
+                        category = category.name
                     )
 
                     FirebaseUtils.saveTransactionToFirebase(
