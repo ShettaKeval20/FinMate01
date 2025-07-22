@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.example.finmate.features.model.Transaction
 import com.example.finmate.features.model.TransactionCategory
 import com.example.finmate.features.model.TransactionType
+import com.example.finmate.features.model.suggestCategoryFromText
 import com.example.finmate.firebase.FirebaseTransactionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +45,9 @@ fun AddTransactionBottomSheet(
 
     val selectedCategory = remember { mutableStateOf<TransactionCategory?>(null) }
     val selectedSubCategory = remember { mutableStateOf<String?>(null) }
+
+    val selectedType = remember { mutableStateOf(TransactionType.EXPENSE) }
+
 
     val availableCategories = TransactionCategory.getCategoriesByType(transactionType)
     val availableSubCategories = TransactionCategory.subCategoryMap[selectedCategory.value] ?: emptyList()
@@ -82,10 +86,31 @@ fun AddTransactionBottomSheet(
 
             InputCard(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = {
+                    title = it
+
+                    val parsed = parseNaturalTransactionInput(it)
+
+                    parsed.amount?.let { amt -> amount = amt.toString() }
+                    selectedCategory.value = parsed.category
+                    selectedType.value = parsed.type
+                    description = parsed.description
+
+                },
                 label = "Title",
                 leadingIcon = Icons.Default.Title
             )
+
+
+            selectedCategory.value?.let {
+                Text(
+                    text = "Suggested Category: ${it.label}",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -199,39 +224,47 @@ fun AddTransactionBottomSheet(
     }
 }
 
+data class ParsedTransaction(
+    val amount: Double?,
+    val category: TransactionCategory,
+    val type: TransactionType,
+    val title: String,
+    val description: String
+)
 
-@Composable
-fun DropdownMenuBox(
-    label: String,
-    options: List<String>,
-    selectedOption: String,
-    onOptionSelected: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
+fun parseNaturalTransactionInput(input: String): ParsedTransaction {
+    val lowercaseInput = input.lowercase()
 
-    Box {
-        OutlinedButton(
-            onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("$label: $selectedOption")
-        }
+    // Extract amount
+    val amount = Regex("""\d+(\.\d+)?""").find(input)?.value?.toDoubleOrNull()
 
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        onOptionSelected(option)
-                        expanded = false
-                    }
-                )
-            }
-        }
+    // Determine type
+    val type = if (listOf("received", "income", "salary", "freelance", "payment", "credited").any { it in lowercaseInput }) {
+        TransactionType.INCOME
+    } else {
+        TransactionType.EXPENSE
     }
+
+    // Determine category
+    val category = suggestCategoryFromText(input)
+
+    // Extract basic description (remove amount and keywords)
+    val cleaned = input
+        .replace(Regex("""\d+(\.\d+)?"""), "") // remove numbers
+        .replace(Regex("""received|gifted|gave|credited|debited|payment|transfer|amount""", RegexOption.IGNORE_CASE), "") // remove common words
+        .replace(Regex("""\s+"""), " ") // normalize whitespace
+        .trim()
+
+
+    val description = if (cleaned.length > 3) cleaned else category.label
+
+    return ParsedTransaction(
+        amount = amount,
+        category = category,
+        type = type,
+        title = input,
+        description = description
+    )
 }
 
 

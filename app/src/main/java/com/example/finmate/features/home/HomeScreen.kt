@@ -11,8 +11,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.finmate.features.addexpense.AddTransactionBottomSheet
 import com.example.finmate.features.model.Transaction
-import com.example.finmate.utils.AnalyticsHelper
-import kotlinx.coroutines.launch
 import com.example.finmate.utils.FirebaseUtils
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext

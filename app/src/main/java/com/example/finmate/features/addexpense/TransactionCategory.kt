@@ -6,6 +6,8 @@ enum class TransactionCategory(val label: String, val type: TransactionType?) {
     FREELANCING("Freelancing", TransactionType.INCOME),
     BUSINESS("Business", TransactionType.INCOME),
     INVESTMENT("Investment", TransactionType.INCOME),
+    GIFTS_AND_DONATIONS("Gifts & Donations", null),
+    GIFT("Gift", TransactionType.INCOME),
 
     // Expense
     FOOD("Food", TransactionType.EXPENSE),
@@ -16,6 +18,8 @@ enum class TransactionCategory(val label: String, val type: TransactionType?) {
     SHOPPING("Shopping", TransactionType.EXPENSE),
     HEALTH("Health", TransactionType.EXPENSE),
     EDUCATION("Education", TransactionType.EXPENSE),
+    PERSONAL_CARE("Personal Care", TransactionType.EXPENSE),
+    DONATION("Donation", TransactionType.EXPENSE),
 
     // Common
     OTHERS("Others", null);
@@ -32,6 +36,7 @@ enum class TransactionCategory(val label: String, val type: TransactionType?) {
             FREELANCING to listOf("Upwork", "Fiverr", "Direct Clients", "Freelance Projects"),
             BUSINESS to listOf("Product Sales", "Service Revenue", "Business Investment Return"),
             INVESTMENT to listOf("Stocks", "Mutual Funds", "Dividends", "Crypto", "Real Estate"),
+            GIFT to listOf("Cash Gift", "Gift Card", "Birthday Gift", "Wedding Gift", "Holiday Gift", "Inheritance"),
 
             // EXPENSE
             FOOD to listOf("Groceries", "Dining Out", "Snacks", "Cafes", "Takeaway"),
@@ -42,10 +47,11 @@ enum class TransactionCategory(val label: String, val type: TransactionType?) {
             SHOPPING to listOf("Clothes", "Electronics", "Accessories", "Home Decor", "Gadgets"),
             HEALTH to listOf("Medicines", "Doctor Visits", "Health Insurance", "Fitness", "Therapy"),
             EDUCATION to listOf("Tuition", "Books", "Online Courses", "Workshops", "Exam Fees"),
+            PERSONAL_CARE to listOf("Salon", "Spa", "Haircut", "Skincare", "Cosmetics", "Toiletries"),
+            DONATION to listOf("Charity", "Religious Offering", "NGO Contributions", "Fundraisers", "Crowdfunding", "Zakat / Tithe"),
 
-            // COMMON
+                    // COMMON
             OTHERS to listOf("Miscellaneous", "Uncategorized")
         )
-
     }
 }
