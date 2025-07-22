@@ -93,8 +93,11 @@ fun AddTransactionBottomSheet(
 
                     parsed.amount?.let { amt -> amount = amt.toString() }
                     selectedCategory.value = parsed.category
-                    selectedType.value = parsed.type
+                    selectedSubCategory.value = null // reset subcategory on title change
                     description = parsed.description
+
+// Set tab based on type parsed
+                    selectedTab = if (parsed.type == TransactionType.INCOME) 0 else 1
 
                 },
                 label = "Title",
