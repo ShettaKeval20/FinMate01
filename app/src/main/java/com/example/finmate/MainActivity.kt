@@ -19,7 +19,6 @@ import com.example.finmate.navGraph.MainNavGraph
 import com.example.finmate.navigation.BottomNavGraph
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -3,6 +3,10 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
+
+    alias(libs.plugins.hilt) // Hilt plugin alias
+    id("kotlin-kapt")
+    id("dagger.hilt.android.plugin") // Required
 }
 
 android {
@@ -87,9 +91,6 @@ dependencies {
 //    Country Picker
     implementation("io.github.joelkanyi:komposecountrycodepicker:1.4.0")
 
-
-
-
     // Facebook Login
     implementation ("com.facebook.android:facebook-login:16.3.0")
 
@@ -98,10 +99,15 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.database)
 
-    implementation ("androidx.compose.foundation:foundation:1.4.3")
+//    Hilt
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
+    implementation("com.google.dagger:hilt-android:2.50")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    kapt ("androidx.hilt:hilt-compiler:1.2.0")
 
-
-
+    implementation ("com.google.android.material:material:1.11.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -110,5 +116,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
 }
