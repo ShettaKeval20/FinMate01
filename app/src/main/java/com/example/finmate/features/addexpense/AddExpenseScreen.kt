@@ -141,6 +141,10 @@ fun AddTransactionBottomSheet(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            QuickAmountButtons(onAmountSelected = { selected ->
+                amount = selected.toString()
+            })
+
             InputCard(
                 value = description,
                 onValueChange = { description = it },
@@ -259,6 +263,23 @@ fun AddTransactionBottomSheet(
         }
     }
 }
+
+@Composable
+fun QuickAmountButtons(onAmountSelected: (Int) -> Unit) {
+    val quickAmounts = listOf(50, 100, 200, 500, 1000)
+
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        items(quickAmounts.size) { index ->
+            val amt = quickAmounts[index]
+            ElevatedAssistChip(
+                onClick = { onAmountSelected(amt) },
+                label = { Text("$amt") },
+                shape = RoundedCornerShape(16.dp)
+            )
+        }
+    }
+}
+
 
 @Composable
 fun RecurringTransactionSelector(

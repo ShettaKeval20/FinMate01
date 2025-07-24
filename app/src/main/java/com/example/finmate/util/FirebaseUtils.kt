@@ -15,4 +15,21 @@ object FirebaseUtils {
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onFailure(it) }
     }
+
+    fun fetchUserTransactions(onDataReceived: (List<Transaction>) -> Unit, onError: (Exception) -> Unit) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return onError(Exception("User not logged in"))
+        val dbRef = FirebaseDatabase.getInstance().getReference("transactions").child(uid)
+
+        dbRef.get()
+            .addOnSuccessListener { snapshot ->
+                val transactions = mutableListOf<Transaction>()
+                snapshot.children.forEach { child ->
+                    val transaction = child.getValue(Transaction::class.java)
+                    transaction?.let { transactions.add(it) }
+                }
+                onDataReceived(transactions)
+            }
+            .addOnFailureListener { onError(it) }
+    }
+
 }
