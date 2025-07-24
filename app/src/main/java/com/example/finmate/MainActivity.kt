@@ -37,6 +37,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
     private fun saveDeviceIdToFirebase() {
         val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         val currentUser = FirebaseAuth.getInstance().currentUser

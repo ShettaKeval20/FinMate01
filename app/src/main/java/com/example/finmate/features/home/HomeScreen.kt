@@ -16,14 +16,29 @@ import com.example.finmate.features.model.Transaction
 import com.example.finmate.utils.FirebaseUtils
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.finmate.features.addexpense.RecurringTransactionWorker
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun HomeScreen(mainNavController: NavHostController) {
     val context = LocalContext.current
     var showSheet by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        val request = PeriodicWorkRequestBuilder<RecurringTransactionWorker>(1, TimeUnit.DAYS).build()
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            "RecurringTransactionWorker",
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Text(
@@ -52,7 +67,8 @@ fun HomeScreen(mainNavController: NavHostController) {
                         amount = amount,
                         date = formattedDate,
                         type = type,
-                        category = category.name
+                        category = category.name,
+
                     )
 
                     FirebaseUtils.saveTransactionToFirebase(
@@ -71,6 +87,8 @@ fun HomeScreen(mainNavController: NavHostController) {
         }
     }
 }
+
+
 
 //package com.example.finmate.screens
 //

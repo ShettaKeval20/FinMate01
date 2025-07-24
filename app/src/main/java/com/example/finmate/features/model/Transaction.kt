@@ -9,6 +9,7 @@ data class Transaction(
     val date: String = "", // ✅ Now this is a human-readable string
     var type: TransactionType = TransactionType.EXPENSE,
     var category: String = "",
-    var subCategory: String = ""
+    var subCategory: String = "",
+    val recurring: String = "One Time"
 
 )

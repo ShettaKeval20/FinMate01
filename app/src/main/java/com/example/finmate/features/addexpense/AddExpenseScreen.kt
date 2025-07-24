@@ -31,268 +31,10 @@ import com.example.finmate.firebase.FirebaseTransactionManager
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-//fun AddTransactionBottomSheet(
-//    onDismiss: () -> Unit,
-//    onSubmit: (String, String, Double, TransactionType, TransactionCategory) -> Unit
-//) {
-//    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-//    var selectedTab by remember { mutableStateOf(0) } // 0 = Income, 1 = Expense
-//    var title by remember { mutableStateOf("") }
-//    var description by remember { mutableStateOf("") }
-//    var amount by remember { mutableStateOf("") }
-//
-//    val transactionType = if (selectedTab == 0) TransactionType.INCOME else TransactionType.EXPENSE
-//    var selectedDateTime by remember { mutableStateOf(System.currentTimeMillis()) }
-//
-//    val selectedCategory = remember { mutableStateOf<TransactionCategory?>(null) }
-//    val selectedSubCategory = remember { mutableStateOf<String?>(null) }
-//
-//    val availableSubCategories = TransactionCategory.subCategoryMap[selectedCategory.value] ?: emptyList()
-//
-//    val scrollState = rememberScrollState()
-//    val context = LocalContext.current
-//
-//    // Date Picker trigger state
-//    var showDatePicker by remember { mutableStateOf(false) }
-//
-//    if (showDatePicker) {
-//        DatePickerDialogSample(
-//            initialDateMillis = selectedDateTime,
-//            onDateSelected = {
-//                selectedDateTime = it
-//                showDatePicker = false
-//            },
-//            onDismissRequest = {
-//                showDatePicker = false
-//            }
-//        )
-//    }
-//
-//    ModalBottomSheet(
-//        onDismissRequest = onDismiss,
-//        sheetState = sheetState,
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .fillMaxHeight()
-//            .padding(top = 250.dp)
-//    ) {
-//        Column(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp)
-//                .verticalScroll(scrollState)
-//        ) {
-//            TabRow(selectedTabIndex = selectedTab) {
-//                Tab(selected = selectedTab == 0, onClick = {
-//                    selectedTab = 0
-//                    selectedCategory.value = null
-//                    selectedSubCategory.value = null
-//                }, text = { Text("Income") })
-//                Tab(selected = selectedTab == 1, onClick = {
-//                    selectedTab = 1
-//                    selectedCategory.value = null
-//                    selectedSubCategory.value = null
-//                }, text = { Text("Expense") })
-//            }
-//
-//            Spacer(modifier = Modifier.height(16.dp))
-//
-//            InputCard(
-//                value = title,
-//                onValueChange = {
-//                    title = it
-//                    val parsed = parseNaturalTransactionInput(it)
-//                    parsed.amount?.let { amt -> amount = amt.toString() }
-//                    selectedCategory.value = parsed.category
-//                    selectedSubCategory.value = suggestSubCategoryFromText(parsed.category, it)
-//                    description = parsed.description
-//                    selectedTab = if (parsed.type == TransactionType.INCOME) 0 else 1
-//                },
-//                label = "Title",
-//                leadingIcon = Icons.Default.Title
-//            )
-//
-//            selectedCategory.value?.let {
-//                Text(
-//                    text = "Suggested Category: ${it.label}",
-//                    color = MaterialTheme.colorScheme.primary,
-//                    style = MaterialTheme.typography.bodySmall,
-//                    modifier = Modifier.padding(top = 4.dp)
-//                )
-//            }
-//
-//            Spacer(modifier = Modifier.height(12.dp))
-//
-//            InputCard(
-//                value = amount,
-//                onValueChange = { amount = it },
-//                label = "Amount",
-//                leadingIcon = Icons.Default.AttachMoney
-//            )
-//
-//            Spacer(modifier = Modifier.height(12.dp))
-//
-//            InputCard(
-//                value = description,
-//                onValueChange = { description = it },
-//                label = "Description",
-//                leadingIcon = Icons.Default.Description
-//            )
-//
-//            Spacer(modifier = Modifier.height(12.dp))
-//
-////            Button(
-////                onClick = { showDatePicker = true },
-////                modifier = Modifier.fillMaxWidth()
-////            ) {
-////                Text("Select Date")
-////            }
-////
-//            val formattedDate = remember(selectedDateTime) {
-//                SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(selectedDateTime))
-//            }
-//
-//            Text(
-//                text = "Selected Date: $formattedDate",
-//                style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
-//                modifier = Modifier.padding(top = 8.dp)
-//            )
-//
-//            // --- Redesigned Date Picker ---
-//            Text(
-//                text = "Transaction Date",
-//                style = MaterialTheme.typography.titleMedium.copy(
-//                    fontWeight = FontWeight.SemiBold,
-//                    color = MaterialTheme.colorScheme.primary
-//                ),
-//                modifier = Modifier.padding(bottom = 8.dp)
-//            )
-//
-//            Card(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .clickable { showDatePicker = true },
-//                colors = CardDefaults.cardColors(
-//                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-//                ),
-//                shape = RoundedCornerShape(12.dp),
-//                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-//            ) {
-//                Row(
-//                    modifier = Modifier
-//                        .padding(16.dp)
-//                        .fillMaxWidth(),
-//                    horizontalArrangement = Arrangement.SpaceBetween,
-//                    verticalAlignment = Alignment.CenterVertically
-//                ) {
-//                    Text(
-//                        text = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(selectedDateTime)),
-//                        style = MaterialTheme.typography.bodyLarge.copy(color = Color.Black)
-//                    )
-//                    Icon(
-//                        imageVector = Icons.Default.DateRange,
-//                        contentDescription = "Select Date",
-//                        tint = MaterialTheme.colorScheme.primary
-//                    )
-//                }
-//            }
-//
-//
-//
-//            Spacer(modifier = Modifier.height(16.dp))
-//
-//            CategorySelector(
-//                selectedCategory = selectedCategory.value,
-//                onCategorySelected = {
-//                    selectedCategory.value = it
-//                    selectedSubCategory.value = null
-//                },
-//                transactionType = transactionType
-//            )
-//
-//            Spacer(modifier = Modifier.height(12.dp))
-//
-//            if (availableSubCategories.isNotEmpty()) {
-//                Text(
-//                    text = "Select Subcategory",
-//                    style = MaterialTheme.typography.titleMedium.copy(
-//                        fontWeight = FontWeight.SemiBold,
-//                        color = MaterialTheme.colorScheme.primary
-//                    ),
-//                    modifier = Modifier.padding(vertical = 12.dp)
-//                )
-//
-//                LazyRow(
-//                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-//                    modifier = Modifier.fillMaxWidth()
-//                ) {
-//                    items(availableSubCategories.size) { index ->
-//                        val subCategory = availableSubCategories[index]
-//                        val isSelected = selectedSubCategory.value == subCategory
-//
-//                        Surface(
-//                            onClick = { selectedSubCategory.value = subCategory },
-//                            shape = RoundedCornerShape(20.dp),
-//                            color = if (isSelected)
-//                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-//                            else
-//                                MaterialTheme.colorScheme.surfaceVariant,
-//                            border = if (isSelected)
-//                                BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
-//                            else null,
-//                        ) {
-//                            Text(
-//                                text = subCategory,
-//                                color = if (isSelected)
-//                                    MaterialTheme.colorScheme.primary
-//                                else Color.Gray,
-//                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-//                                style = MaterialTheme.typography.bodySmall
-//                            )
-//                        }
-//                    }
-//                }
-//            }
-//
-//            Spacer(modifier = Modifier.height(12.dp))
-//
-//            Button(
-//                onClick = {
-//                    val parsedAmount = amount.toDoubleOrNull()
-//                    if (!title.isBlank() && parsedAmount != null) {
-//                        val transaction = Transaction(
-//                            title = title,
-//                            description = description,
-//                            amount = parsedAmount,
-//                            date = formattedDate,
-//                            type = transactionType,
-//                            category = selectedCategory.value?.label ?: "Others",
-//                            subCategory = selectedSubCategory.value ?: ""
-//                        )
-//
-//                        FirebaseTransactionManager.saveTransaction(
-//                            transaction,
-//                            onSuccess = {
-//                                Log.d("Firebase", "Transaction saved successfully.")
-//                                onDismiss()
-//                            },
-//                            onFailure = {
-//                                Log.e("Firebase", "Failed to save transaction: ${it.message}")
-//                            }
-//                        )
-//                    }
-//                },
-//                modifier = Modifier.fillMaxWidth()
-//            ) {
-//                Text("Save ${transactionType.name.lowercase().replaceFirstChar { it.uppercase() }}")
-//            }
-//        }
-//    }
-//}
-
 fun AddTransactionBottomSheet(
     onDismiss: () -> Unit,
     onSubmit: (String, String, Double, TransactionType, TransactionCategory) -> Unit
@@ -314,16 +56,21 @@ fun AddTransactionBottomSheet(
     val scrollState = rememberScrollState()
     var showDatePicker by remember { mutableStateOf(false) }
 
+    val adjustedDateMillis = selectedDateTime + TimeZone.getDefault().getOffset(selectedDateTime)
+
+    var recurringType by remember { mutableStateOf("One Time") }
+
     if (showDatePicker) {
-        DatePickerDialogSample(
-            initialDateMillis = selectedDateTime,
+        CustomDatePickerDialog(
+            currentDate = selectedDateTime,
             onDateSelected = {
                 selectedDateTime = it
                 showDatePicker = false
             },
-            onDismissRequest = { showDatePicker = false }
+            onDismiss = { showDatePicker = false }
         )
     }
+
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -411,6 +158,14 @@ fun AddTransactionBottomSheet(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            RecurringTransactionSelector(
+                selectedOption = recurringType,
+                onOptionSelected = { recurringType = it }
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+
             // Category
             CategorySelector(
                 selectedCategory = selectedCategory.value,
@@ -473,10 +228,11 @@ fun AddTransactionBottomSheet(
                             title = title,
                             description = description,
                             amount = parsedAmount,
-                            date = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(selectedDateTime)),
+                            date = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(adjustedDateMillis)),
                             type = transactionType,
                             category = selectedCategory.value?.label ?: "Others",
-                            subCategory = selectedSubCategory.value ?: ""
+                            subCategory = selectedSubCategory.value ?: "",
+                            recurring = recurringType
                         )
 
                         FirebaseTransactionManager.saveTransaction(
@@ -505,59 +261,139 @@ fun AddTransactionBottomSheet(
 }
 
 @Composable
+fun RecurringTransactionSelector(
+    selectedOption: String,
+    onOptionSelected: (String) -> Unit
+) {
+    val options = listOf("One Time", "Daily", "Weekly", "Monthly")
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Recurring Type",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(options.size) { index ->
+                val option = options[index]
+                val isSelected = option == selectedOption
+
+                Surface(
+                    onClick = { onOptionSelected(option) },
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (isSelected)
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                    else
+                        MaterialTheme.colorScheme.surfaceVariant,
+                    border = if (isSelected)
+                        BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    else null,
+                ) {
+                    Text(
+                        text = option,
+                        color = if (isSelected)
+                            MaterialTheme.colorScheme.primary
+                        else Color.Gray,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CustomDatePickerDialog(
+    currentDate: Long,
+    onDateSelected: (Long) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val state = rememberDatePickerState(initialSelectedDateMillis = currentDate)
+
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    state.selectedDateMillis?.let { onDateSelected(it) }
+                }
+            ) {
+                Text("Select", fontWeight = FontWeight.SemiBold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        DatePicker(
+            state = state,
+            showModeToggle = true
+        )
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun ModernDateSelector(
     selectedDateMillis: Long,
     onDateClick: () -> Unit
 ) {
     val formattedDate = remember(selectedDateMillis) {
-        SimpleDateFormat("EEE, dd MMM yyyy", Locale.getDefault()).format(Date(selectedDateMillis))
+        val sdf = SimpleDateFormat("EEE, dd MMM yyyy", Locale.getDefault())
+        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")  // ✅ Ensures correct date regardless of local offset
+        sdf.format(Date(selectedDateMillis))
     }
 
-    Text(
-        text = "Transaction Date",
-        style = MaterialTheme.typography.titleMedium.copy(
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary
-        ),
-        modifier = Modifier.padding(bottom = 8.dp)
-    )
-
-    Card(
+    ElevatedCard(
+        onClick = onDateClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(60.dp)
-            .clickable(onClick = onDateClick),
+            .height(60.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.elevatedCardElevation(6.dp)
     ) {
         Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = 16.dp)
         ) {
-            Column {
-                Text(
-                    text = formattedDate,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                )
-                Text(
-                    text = "Tap to change",
-                    style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
-                )
-            }
             Icon(
-                imageVector = Icons.Default.Event,
-                contentDescription = "Pick Date",
+                imageVector = Icons.Default.CalendarMonth,
+                contentDescription = "Calendar",
                 tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = formattedDate,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Medium
+                )
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Icon(
+                imageVector = Icons.Default.EditCalendar,
+                contentDescription = "Edit",
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
             )
         }
     }
 }
+
 
 
 
