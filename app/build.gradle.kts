@@ -110,6 +110,10 @@ dependencies {
 
     implementation ("com.google.android.material:material:1.11.0")
 
+//    Speech recognition
+    implementation ("androidx.compose.runtime:runtime-livedata:1.4.0")
+
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

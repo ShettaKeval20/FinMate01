@@ -3,6 +3,7 @@ package com.example.finmate.features.addexpense
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -17,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -60,6 +62,11 @@ fun AddTransactionBottomSheet(
 
     var recurringType by remember { mutableStateOf("One Time") }
 
+    var amountManuallyFocused by remember { mutableStateOf(false) }
+
+    var isFocused by remember { mutableStateOf(false) }
+
+
     if (showDatePicker) {
         CustomDatePickerDialog(
             currentDate = selectedDateTime,
@@ -70,6 +77,29 @@ fun AddTransactionBottomSheet(
             onDismiss = { showDatePicker = false }
         )
     }
+
+    val context = LocalContext.current
+    var isListening by remember { mutableStateOf(false) }
+    val speechHelper = remember {
+        SpeechRecognizerHelper(
+            context = context,
+            onResult = { spokenText ->
+                isListening = false
+                val parsed = parseNaturalTransactionInput(spokenText)
+                title = spokenText
+                parsed.amount?.let { amount = it.toString() }
+                description = parsed.description
+                selectedCategory.value = parsed.category
+                selectedSubCategory.value = suggestSubCategoryFromText(parsed.category, spokenText)
+                selectedTab = if (parsed.type == TransactionType.INCOME) 0 else 1
+            },
+            onError = {
+                isListening = false
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
 
 
     ModalBottomSheet(
@@ -115,6 +145,36 @@ fun AddTransactionBottomSheet(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, bottom = 12.dp)
+            ) {
+                Text("Use voice to fill fields", modifier = Modifier.weight(1f))
+
+                IconButton(
+                    onClick = {
+                        isListening = true
+                        speechHelper.startListening()
+                    },
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(
+                            if (isListening) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                            else MaterialTheme.colorScheme.surfaceVariant
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = "Mic",
+                        tint = if (isListening) MaterialTheme.colorScheme.primary else Color.Gray
+                    )
+                }
+            }
+
+
             InputCard(
                 value = title,
                 onValueChange = {
@@ -136,14 +196,19 @@ fun AddTransactionBottomSheet(
                 value = amount,
                 onValueChange = { amount = it },
                 label = "Amount",
-                leadingIcon = Icons.Default.AttachMoney
+                leadingIcon = Icons.Default.AttachMoney,
+                onFocus = { amountManuallyFocused = true }
             )
+
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            QuickAmountButtons(onAmountSelected = { selected ->
-                amount = selected.toString()
-            })
+            if (amountManuallyFocused) {
+                QuickAmountButtons(onAmountSelected = { selected ->
+                    amount = selected.toString()
+                })
+            }
+
 
             InputCard(
                 value = description,
@@ -415,9 +480,6 @@ fun ModernDateSelector(
     }
 }
 
-
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DatePickerDialogSample(
@@ -573,6 +635,59 @@ fun CategorySelector(
 }
 
 
+//@Composable
+//fun InputCard(
+//    value: String,
+//    onValueChange: (String) -> Unit,
+//    label: String,
+//    leadingIcon: ImageVector,
+//    isError: Boolean = false,
+//    errorText: String? = null,
+//    maxLines: Int = 1
+//) {
+//    val keyboardType = when (label.lowercase()) {
+//        "amount" -> KeyboardType.Number
+//        else -> KeyboardType.Text
+//    }
+//
+//    Column {
+//        OutlinedTextField(
+//            value = value,
+//            onValueChange = onValueChange,
+//            label = { Text(label) },
+//            leadingIcon = { Icon(leadingIcon, contentDescription = label) },
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .clip(RoundedCornerShape(14.dp))
+//                .onFocusChanged {
+//                    if (!isFocused && it.isFocused) {
+//                        onFocus?.invoke()
+//                    }
+//                    isFocused = it.isFocused
+//                },
+//            singleLine = maxLines == 1,
+//            maxLines = maxLines,
+//            isError = isError,
+//            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+//            colors = OutlinedTextFieldDefaults.colors(
+//                focusedBorderColor = MaterialTheme.colorScheme.primary,
+//                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+//                errorBorderColor = MaterialTheme.colorScheme.error,
+//                focusedLabelColor = MaterialTheme.colorScheme.primary,
+//                unfocusedLabelColor = MaterialTheme.colorScheme.outline,
+//                errorLabelColor = MaterialTheme.colorScheme.error
+//            )
+//        )
+//        if (isError && errorText != null) {
+//            Spacer(modifier = Modifier.height(4.dp))
+//            Text(
+//                text = errorText,
+//                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.error)
+//            )
+//        }
+//    }
+//}
+
 @Composable
 fun InputCard(
     value: String,
@@ -581,12 +696,15 @@ fun InputCard(
     leadingIcon: ImageVector,
     isError: Boolean = false,
     errorText: String? = null,
-    maxLines: Int = 1
+    maxLines: Int = 1,
+    onFocus: (() -> Unit)? = null // ✅ optional focus callback
 ) {
     val keyboardType = when (label.lowercase()) {
         "amount" -> KeyboardType.Number
         else -> KeyboardType.Text
     }
+
+    var isFocused by remember { mutableStateOf(false) } // ✅ define local focus state
 
     Column {
         OutlinedTextField(
@@ -596,7 +714,13 @@ fun InputCard(
             leadingIcon = { Icon(leadingIcon, contentDescription = label) },
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(14.dp)),
+                .clip(RoundedCornerShape(14.dp))
+                .onFocusChanged {
+                    if (!isFocused && it.isFocused) {
+                        onFocus?.invoke() // ✅ invoke only on gaining focus
+                    }
+                    isFocused = it.isFocused
+                },
             singleLine = maxLines == 1,
             maxLines = maxLines,
             isError = isError,
@@ -610,6 +734,7 @@ fun InputCard(
                 errorLabelColor = MaterialTheme.colorScheme.error
             )
         )
+
         if (isError && errorText != null) {
             Spacer(modifier = Modifier.height(4.dp))
             Text(
