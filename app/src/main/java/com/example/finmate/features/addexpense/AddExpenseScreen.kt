@@ -518,31 +518,80 @@ data class ParsedTransaction(
     val description: String
 )
 
+//fun parseNaturalTransactionInput(input: String): ParsedTransaction {
+//    val lowercaseInput = input.lowercase()
+//
+//    val amount = Regex("""[\d,]+(\.\d+)?""")
+//        .find(input)
+//        ?.value
+//        ?.replace(",", "")
+//        ?.replace(Regex("""[^\d.]"""), "")
+//        ?.toDoubleOrNull()
+//
+//    // Determine type
+//    val type = if (listOf("received", "income", "salary", "freelance", "payment", "credited", "profit", "bonus", "cheque", "deposit", "won").any { it in lowercaseInput }) {
+//        TransactionType.INCOME
+//    } else {
+//        TransactionType.EXPENSE
+//    }
+//
+//    // Determine category
+//    val category = suggestCategoryFromText(input)
+//
+//    // Extract basic description (remove amount and keywords)
+//    val cleaned = input
+//        .replace(Regex("""\d+(\.\d+)?"""), "") // remove numbers
+//        .replace(Regex("""received|gifted|gave|credited|debited|payment|transfer|amount|of|rs|rupees|for""", RegexOption.IGNORE_CASE), "")
+//        .replace(Regex("""\s+"""), " ") // normalize whitespace
+//        .trim()
+//
+//    val description = cleaned.replaceFirstChar { it.uppercaseChar() }.ifEmpty { category.label }
+//
+//
+//    return ParsedTransaction(
+//        amount = amount,
+//        category = category,
+//        type = type,
+//        title = input,
+//        description = description
+//    )
+//}
+
 fun parseNaturalTransactionInput(input: String): ParsedTransaction {
     val lowercaseInput = input.lowercase()
 
     // Extract amount
-    val amount = Regex("""\d+(\.\d+)?""").find(input)?.value?.toDoubleOrNull()
+    val rawAmountText = Regex("""[\d,]+(\.\d+)?""").find(input)?.value
+    val amount = rawAmountText
+        ?.replace(",", "")
+        ?.replace(Regex("""[^\d.]"""), "")
+        ?.toDoubleOrNull()
 
-    // Determine type
-    val type = if (listOf("received", "income", "salary", "freelance", "payment", "credited").any { it in lowercaseInput }) {
-        TransactionType.INCOME
-    } else {
-        TransactionType.EXPENSE
+    val incomeKeywords = listOf("received", "credited", "income", "salary", "freelance", "bonus", "payment from", "gift", "won", "deposit")
+    val expenseKeywords = listOf("spent", "paid", "bought", "expense", "debited", "purchase", "bill", "recharge", "rent")
+
+    val type = when {
+        incomeKeywords.any { it in lowercaseInput } -> TransactionType.INCOME
+        expenseKeywords.any { it in lowercaseInput } -> TransactionType.EXPENSE
+        else -> TransactionType.EXPENSE
     }
 
-    // Determine category
     val category = suggestCategoryFromText(input)
+    val subCategory = suggestSubCategoryFromText(category, input)
 
-    // Extract basic description (remove amount and keywords)
-    val cleaned = input
-        .replace(Regex("""\d+(\.\d+)?"""), "") // remove numbers
-        .replace(Regex("""received|gifted|gave|credited|debited|payment|transfer|amount|of|rs|rupees|for""", RegexOption.IGNORE_CASE), "")
-        .replace(Regex("""\s+"""), " ") // normalize whitespace
-        .trim()
+    // ✅ Build readable sentence description
+    val amountText = if (amount != null) "₹${amount.toInt()}" else ""
+    val action = if (type == TransactionType.INCOME) "Received" else "Paid"
+    val reason = when {
+        !subCategory.isNullOrBlank() -> "for $subCategory"
+        category.label.isNotBlank() -> "for ${category.label}"
+        else -> ""
+    }
 
-    val description = cleaned.replaceFirstChar { it.uppercaseChar() }.ifEmpty { category.label }
-
+    val description = listOf(action, amountText, reason)
+        .filter { it.isNotBlank() }
+        .joinToString(" ")
+        .replaceFirstChar { it.uppercaseChar() }
 
     return ParsedTransaction(
         amount = amount,
@@ -552,6 +601,7 @@ fun parseNaturalTransactionInput(input: String): ParsedTransaction {
         description = description
     )
 }
+
 
 fun suggestSubCategoryFromText(category: TransactionCategory, input: String): String? {
     val lower = input.lowercase()

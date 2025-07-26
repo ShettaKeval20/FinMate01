@@ -15,16 +15,31 @@ import androidx.navigation.compose.rememberNavController
 import com.example.finmate.ui.theme.FinMateTheme
 import com.example.finmate.navigation.BottomBar
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.finmate.features.addexpense.RecurringTransactionWorker
 import com.example.finmate.navGraph.MainNavGraph
 import com.example.finmate.navigation.BottomNavGraph
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import java.util.concurrent.TimeUnit
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         // ✅ Save device ID to Firebase
         saveDeviceIdToFirebase()
+
+        val request = PeriodicWorkRequestBuilder<RecurringTransactionWorker>(1, TimeUnit.DAYS).build()
+
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "RecurringTransactionWorker",
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
+
 
         setContent {
             FinMateTheme {
