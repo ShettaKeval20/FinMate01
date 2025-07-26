@@ -580,7 +580,7 @@ fun parseNaturalTransactionInput(input: String): ParsedTransaction {
     val subCategory = suggestSubCategoryFromText(category, input)
 
     // ✅ Build readable sentence description
-    val amountText = if (amount != null) "₹${amount.toInt()}" else ""
+    val amountText = if (amount != null) "${amount.toInt()}" else ""
     val action = if (type == TransactionType.INCOME) "Received" else "Paid"
     val reason = when {
         !subCategory.isNullOrBlank() -> "for $subCategory"
